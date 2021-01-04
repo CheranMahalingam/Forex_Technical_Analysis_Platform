@@ -12,7 +12,10 @@ from time import mktime
 import scrapy
 
 def unix_timestamp_daily_fx(value):
-    unix_time = datetime.strptime(value, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc).timestamp()
+    try:
+        unix_time = datetime.strptime(value, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc).timestamp()
+    except:
+        unix_time = 0
     return unix_time
 
 def unix_timestamp_forex_live(value):
@@ -31,8 +34,11 @@ def unix_timestamp_forex_live(value):
     return unix_time
 
 def unix_timestamp_reuters(value):
-    month_number = datetime.strptime(value[0:3], "%b").month
-    unix_time = datetime.strptime(str(month_number) + value[3:], "%m %d %Y").replace(tzinfo=timezone.utc).timestamp()
+    try:
+        month_number = datetime.strptime(value[0:3], "%b").month
+        unix_time = datetime.strptime(str(month_number) + value[3:], "%m %d %Y").replace(tzinfo=timezone.utc).timestamp()
+    except:
+        unix_time = 0
     return unix_time
 
 
@@ -60,4 +66,8 @@ class ReutersItem(Item):
 
     summary = Field(
         input_processor=MapCompose(strip_html5_whitespace)
+    )
+
+    date = Field(
+        input_processor=MapCompose(unix_timestamp_reuters)
     )
