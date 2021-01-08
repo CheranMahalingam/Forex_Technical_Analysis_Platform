@@ -64,7 +64,7 @@ def scrape_data(url, data):
                 print(tweet_count)
                 if tweet_count == TWEET_MAX:
                     break
-        
+
         new_post_list = driver.find_elements_by_xpath(post_element_xpath)
 
         while new_post_list == post_list:
