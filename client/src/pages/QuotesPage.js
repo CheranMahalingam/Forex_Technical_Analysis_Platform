@@ -1,9 +1,10 @@
 import React from "react";
+import QuoteSelector from "../components/QuoteSelector/QuoteSelector";
 
 function QuotesPage() {
   return (
     <React.Fragment>
-      <p>Quotes Page</p>
+      <QuoteSelector />
     </React.Fragment>
   );
 }
