@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 
 
-def indicators_preprocessing(pair):
+def indicators_preprocess(pair):
     """
     Reads 1 minute interval exchange rate data and calculates 10 day EMA, 50 day EMA,
     RSI, and A/D index. EMA and Close prices are transformed by using log returns
@@ -16,7 +16,7 @@ def indicators_preprocessing(pair):
     Args:
         pair: String representing the currency pair symbol(e.g EURUSD)
     """
-    currency = pd.read_csv("../../data/external/exchange_rates/{}_M1.csv".format(pair))
+    currency = pd.read_csv("../data/external/exchange_rates/{}_M1.csv".format(pair))
     print(currency.shape)
     print(currency['DateTime'].iloc[-1])
     currency = convert_date(currency)
@@ -37,7 +37,7 @@ def indicators_preprocessing(pair):
     currency["Time"] = currency["Time"].dt.strftime("%Y-%m-%d %H:%M:%S")
     print(currency)
 
-    currency.to_csv("../../data/interim/exchange_rate/{}_exchange.csv".format(pair), index=False)
+    currency.to_csv("../data/interim/exchange_rate/{}_exchange.csv".format(pair), index=False)
 
 def convert_date(exchange):
     """

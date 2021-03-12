@@ -10,7 +10,7 @@ def cpi_preprocess():
     Reformats datetime and strips information outside of 2018-2020.
     The resulting dataframe is stored in the interim folder.
     """
-    cpi_data = pd.read_csv("../../data/external/cpi/CPI_2018-2020.csv")
+    cpi_data = pd.read_csv("../data/external/cpi/CPI_2018-2020.csv")
     cpi_data = cpi_data.rename(columns={"TIME": "Time", "Value": "CPI"})
     cpi_data = cpi_data[{"Time", "CPI"}]
     cpi_data["Time"] = cpi_data["Time"].transform(
@@ -31,8 +31,8 @@ def cpi_preprocess():
 
     # Similar steps must be applied to AUD and NZD
     # AUD, NZD comes from different data source with different csv structure
-    australia_cpi_data = pd.read_csv("../../data/external/cpi/AUD_CPI_2018-2020.csv")
-    new_zealand_cpi_data = pd.read_csv("../../data/external/cpi/NZD_CPI_2018-2020.csv")
+    australia_cpi_data = pd.read_csv("../data/external/cpi/AUD_CPI_2018-2020.csv")
+    new_zealand_cpi_data = pd.read_csv("../data/external/cpi/NZD_CPI_2018-2020.csv")
     aud_cpi = australia_cpi_data[25:37]
     nzd_cpi = new_zealand_cpi_data[4:]
 
@@ -49,28 +49,28 @@ def cpi_preprocess():
     aud_cpi = create_cpi_csv(aud_cpi, time_frame, aud_cpi["CPI"].iloc[0])
     aud_cpi['CPI'] = pd.to_numeric(aud_cpi['CPI'])
 
-    aud_cpi.to_csv("../../data/interim/cpi/aud_cpi_processed.csv", index=False)
+    aud_cpi.to_csv("../data/interim/cpi/aud_cpi_processed.csv", index=False)
     create_cpi_csv(
         cad_cpi, time_frame, cad_cpi["CPI"].iloc[0]).to_csv(
-            "../../data/interim/cpi/cad_cpi_processed.csv", index=False)
+            "../data/interim/cpi/cad_cpi_processed.csv", index=False)
     create_cpi_csv(
         jpy_cpi, time_frame, jpy_cpi["CPI"].iloc[0]).to_csv(
-            "../../data/interim/cpi/jpy_cpi_processed.csv", index=False)
+            "../data/interim/cpi/jpy_cpi_processed.csv", index=False)
     create_cpi_csv(
         chf_cpi, time_frame, chf_cpi["CPI"].iloc[0]).to_csv(
-            "../../data/interim/cpi/chf_cpi_processed.csv", index=False)
+            "../data/interim/cpi/chf_cpi_processed.csv", index=False)
     create_cpi_csv(
         gbp_cpi, time_frame, gbp_cpi["CPI"].iloc[0]).to_csv(
-            "../../data/interim/cpi/gbp_cpi_processed.csv", index=False)
+            "../data/interim/cpi/gbp_cpi_processed.csv", index=False)
     create_cpi_csv(
         usd_cpi, time_frame, usd_cpi["CPI"].iloc[0]).to_csv(
-            "../../data/interim/cpi/usd_cpi_processed.csv", index=False)
+            "../data/interim/cpi/usd_cpi_processed.csv", index=False)
     create_cpi_csv(
         eur_cpi, time_frame, eur_cpi["CPI"].iloc[0]).to_csv(
-            "../../data/interim/cpi/eur_cpi_processed.csv", index=False)
+            "../data/interim/cpi/eur_cpi_processed.csv", index=False)
     create_cpi_csv(
         nzd_cpi, time_frame, nzd_cpi["CPI"].iloc[0]).to_csv(
-            "../../data/interim/cpi/nzd_cpi_processed.csv", index=False)
+            "../data/interim/cpi/nzd_cpi_processed.csv", index=False)
 
 def create_cpi_csv(pair_df, time_df, initial):
     """

@@ -16,7 +16,7 @@ def news_unpacking(org):
     Returns:
         Dataframe containing news headlines, time, and summaries.
     """
-    org_news = pd.read_json("../../data/raw/news/{}_historical.json".format(org))
+    org_news = pd.read_json("../data/raw/news/{}_historical.json".format(org))
     headline_arr = []
     date_arr = []
     summary_arr = []
@@ -141,7 +141,7 @@ def currency_sentiment(currencies_dict, news):
             1440, min_periods=1).mean()
     country_df = country_df.fillna(0)
 
-    country_df.to_csv("../../data/interim/news/news_sentiment.csv", index=False)
+    country_df.to_csv("../data/interim/news/news_sentiment.csv", index=False)
 
 def combine_dates(news):
     """
