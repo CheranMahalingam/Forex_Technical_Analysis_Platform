@@ -10,7 +10,7 @@ def gdp_preprocess():
     Reformats datetime and strips information outside of 2018-2020.
     The resulting dataframe is stored in the interim folder.
     """
-    gdp_data = pd.read_csv("../data/external/gdp/GDP_2018-2020.csv")
+    gdp_data = pd.read_csv("lstm_model/data/external/gdp/GDP_2018-2020.csv")
     gdp_data = gdp_data.rename(columns={"TIME": "Time", "Value": "GDP"})
     gdp_data = gdp_data[{"Time", "GDP"}]
 
@@ -36,28 +36,28 @@ def gdp_preprocess():
 
     create_gdp_csv(
         aud_gdp, time_frame, aud_gdp["GDP"].iloc[0]).to_csv(
-            "../data/interim/gdp/aud_gdp_processed.csv", index=False)
+            "lstm_model/data/interim/gdp/aud_gdp_processed.csv", index=False)
     create_gdp_csv(
         gbp_gdp, time_frame, gbp_gdp["GDP"].iloc[0]).to_csv(
-            "../data/interim/gdp/gbp_gdp_processed.csv", index=False)
+            "lstm_model/data/interim/gdp/gbp_gdp_processed.csv", index=False)
     create_gdp_csv(
         jpy_gdp, time_frame, jpy_gdp["GDP"].iloc[0]).to_csv(
-            "../data/interim/gdp/jpy_gdp_processed.csv", index=False)
+            "lstm_model/data/interim/gdp/jpy_gdp_processed.csv", index=False)
     create_gdp_csv(
         cad_gdp, time_frame, cad_gdp["GDP"].iloc[0]).to_csv(
-            "../data/interim/gdp/cad_gdp_processed.csv", index=False)
+            "lstm_model/data/interim/gdp/cad_gdp_processed.csv", index=False)
     create_gdp_csv(
         usd_gdp, time_frame, usd_gdp["GDP"].iloc[0]).to_csv(
-            "../data/interim/gdp/usd_gdp_processed.csv", index=False)
+            "lstm_model/data/interim/gdp/usd_gdp_processed.csv", index=False)
     create_gdp_csv(
         chf_gdp, time_frame, chf_gdp["GDP"].iloc[0]).to_csv(
-            "../data/interim/gdp/chf_gdp_processed.csv", index=False)
+            "lstm_model/data/interim/gdp/chf_gdp_processed.csv", index=False)
     create_gdp_csv(
         nzd_gdp, time_frame, nzd_gdp["GDP"].iloc[0]).to_csv(
-            "../data/interim/gdp/nzd_gdp_processed.csv", index=False)
+            "lstm_model/data/interim/gdp/nzd_gdp_processed.csv", index=False)
     create_gdp_csv(
         eur_gdp, time_frame, eur_gdp["GDP"].iloc[0]).to_csv(
-            "../data/interim/gdp/eur_gdp_processed.csv", index=False)
+            "lstm_model/data/interim/gdp/eur_gdp_processed.csv", index=False)
 
 def create_gdp_csv(pair_df, time_df, initial):
     """

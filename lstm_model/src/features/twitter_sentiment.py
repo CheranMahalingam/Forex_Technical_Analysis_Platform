@@ -17,7 +17,7 @@ def twitter_unpacking(account):
     Returns:
         Dataframe containing tweets from an account with post and date.
     """
-    tweets = pd.read_json("../data/raw/tweets/{}_historical.json".format(account))
+    tweets = pd.read_json("lstm_model/data/raw/tweets/{}_historical.json".format(account))
     headline_arr = []
     date_arr = []
 
@@ -155,7 +155,7 @@ def currency_sentiment(currencies_dict, tweets):
             currency.upper()].rolling(1440, min_periods=1).mean()
     country_df = country_df.fillna(0)
 
-    country_df.to_csv("../data/interim/tweets/tweets_sentiment.csv", index=False)
+    country_df.to_csv("lstm_model/data/interim/tweets/tweets_sentiment.csv", index=False)
 
 def combine_dates(tweets):
     """

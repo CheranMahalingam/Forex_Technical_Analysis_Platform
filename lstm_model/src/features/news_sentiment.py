@@ -16,7 +16,7 @@ def news_unpacking(org):
     Returns:
         Dataframe containing news headlines, time, and summaries.
     """
-    org_news = pd.read_json("../data/raw/news/{}_historical.json".format(org))
+    org_news = pd.read_json("lstm_model/data/raw/news/{}_historical.json".format(org))
     headline_arr = []
     date_arr = []
     summary_arr = []
@@ -96,7 +96,7 @@ def currency_sentiment(currencies_dict, news):
         for entity in currencies_dict[currency]["positive"]:
             headline_lower = news["Headline"].transform(lambda headline: headline.lower())
             summary_lower = news["Summary"].transform(
-                lambda summary: summary.lower() if isinstance(summary) == "object" else summary)
+                lambda summary: summary.lower() if type(summary) == "object" else summary)
             currency_df = news[(headline_lower.str.contains(entity)) | \
                 (summary_lower.str.contains(entity))]
             currency_df = currency_df[{"Time", "News_Sentiment"}]
@@ -111,7 +111,7 @@ def currency_sentiment(currencies_dict, news):
         for entity in currencies_dict[currency]["negative"]:
             headline_lower = news["Headline"].transform(lambda headline: headline.lower())
             summary_lower = news["Summary"].transform(
-                lambda summary: summary.lower() if isinstance(summary) == "object" else summary)
+                lambda summary: summary.lower() if type(summary) == "object" else summary)
             currency_df = news[(headline_lower.str.contains(entity)) | \
                 (summary_lower.str.contains(entity))]
             currency_df = currency_df[{"Time", "News_Sentiment"}]
@@ -141,7 +141,7 @@ def currency_sentiment(currencies_dict, news):
             1440, min_periods=1).mean()
     country_df = country_df.fillna(0)
 
-    country_df.to_csv("../data/interim/news/news_sentiment.csv", index=False)
+    country_df.to_csv("lstm_model/data/interim/news/news_sentiment.csv", index=False)
 
 def combine_dates(news):
     """

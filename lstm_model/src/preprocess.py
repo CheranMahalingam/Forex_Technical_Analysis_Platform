@@ -1,3 +1,5 @@
+"""Generates processed data for a specified currency pair"""
+
 from datetime import datetime
 from functools import reduce
 import pandas as pd
@@ -11,8 +13,8 @@ def build_currency_dataframe(buy, sell):
     buy_df = combine_indicators(buy, pair)
     buy = buy.upper()
     buy_df = buy_df.rename(columns={
-        "CPI": buy + "_CPI", 
-        "GDP": buy + "_GDP", 
+        "CPI": buy + "_CPI",
+        "GDP": buy + "_GDP",
         "Interest Rate": buy + " Interest Rate",
         "PPI": buy + "_PPI",
         "Unemployment Rate": buy + " Unemployment Rate",
@@ -35,29 +37,27 @@ def build_currency_dataframe(buy, sell):
     sell_df.reset_index(drop=True)
     pair_df = buy_df.merge(sell_df, how="inner", on=["Time"])
     pair_df['Time'] = pd.to_datetime(pair_df['Time'], utc=True)
-    print(pair_df['Real Close'].isna().sum())
     pair_df = configure_time(15, pair_df)
-    print(pair_df['Real Close'].isna().sum())
-    pair_df.to_csv("../data/processed/{}_processed.csv".format(pair), index=False)
+    pair_df.to_csv("lstm_model/data/processed/{}_processed.csv".format(pair), index=False)
     return pair_df
 
 def combine_indicators(currency, pair):
-    cpi = pd.read_csv("../data/interim/cpi/{}_cpi_processed.csv".format(currency))
-    gdp = pd.read_csv("../data/interim/gdp/{}_gdp_processed.csv".format(currency))
-    ir = pd.read_csv("../data/interim/interest_rate/{}_ir_processed.csv".format(currency))
-    ppi = pd.read_csv("../data/interim/ppi/{}_ppi_processed.csv".format(currency))
-    ue = pd.read_csv("../data/interim/unemployment_rate/{}_ue_processed.csv".format(currency))
-    news = pd.read_csv("../data/interim/news/news_sentiment.csv")
+    cpi = pd.read_csv("lstm_model/data/interim/cpi/{}_cpi_processed.csv".format(currency))
+    gdp = pd.read_csv("lstm_model/data/interim/gdp/{}_gdp_processed.csv".format(currency))
+    ir = pd.read_csv("lstm_model/data/interim/interest_rate/{}_ir_processed.csv".format(currency))
+    ppi = pd.read_csv("lstm_model/data/interim/ppi/{}_ppi_processed.csv".format(currency))
+    ue = pd.read_csv("lstm_model/data/interim/unemployment_rate/{}_ue_processed.csv".format(currency))
+    news = pd.read_csv("lstm_model/data/interim/news/news_sentiment.csv")
     news = news[{"Time", currency.upper()}]
     news = news.rename(columns={currency.upper(): "News Sentiment"})
-    tweets = pd.read_csv("../data/interim/tweets/tweets_sentiment.csv")
+    tweets = pd.read_csv("lstm_model/data/interim/tweets/tweets_sentiment.csv")
     tweets = tweets[{"Time", currency.upper()}]
     tweets = tweets.rename(columns={currency.upper(): "Twitter Sentiment"})
 
     combined_df = merge_dataframe([cpi, gdp, ir, ppi, ue, news, tweets])
 
     if currency.upper() in pair:
-        exchange_rate = pd.read_csv("../data/interim/exchange_rate/{}_exchange.csv".format(pair))
+        exchange_rate = pd.read_csv("lstm_model/data/interim/exchange_rate/{}_exchange.csv".format(pair))
         combined_df = merge_dataframe([combined_df, exchange_rate])
 
     combined_df = combined_df[combined_df["RSI"].notnull()]
@@ -66,7 +66,6 @@ def combine_indicators(currency, pair):
 def merge_dataframe(data_list):
     merged_data = reduce(
         lambda left, right: pd.merge(left, right, how="outer", on="Time"), data_list)
-    print(merged_data)
     merged_data.sort_values(by=["Time"], inplace=True)
     merged_data = merged_data.reset_index(drop=True)
     return merged_data
@@ -88,14 +87,38 @@ def convert_date(exchange):
 if __name__ == "__main__":
     currency_pair = "AUDCAD"
     sentiment_keyword = {
-        "usd": {"positive": ["usd/", "u.s.", "greenback", "buck", "barnie", "america", "united states"], "negative": ["/usd", "cable"]},
-        "aud": {"positive": ["aud/", "gold", "aussie", "australia"], "negative": ["/aud"]}, 
-        "gbp": {"positive": ["gbp/", "sterling", "pound", "u.k.", "united kingdom", "cable", "guppy"], "negative": ["/gbp"]},
-        "nzd": {"positive": ["nzd/", "gold", "kiwi", "new zealand"], "negative": ["/nzd"]},
-        "cad": {"positive": ["cad/", "oil", "loonie", "canada"], "negative": ["/cad"]},
-        "chf": {"positive": ["chf/", "swiss"], "negative": ["/chf"]},
-        "jpy": {"positive": ["jpy/", "asian", "japan"], "negative": ["/jpy", "guppy"]},
-        "eur": {"positive": ["eur/", "fiber", "euro"], "negative": ["/eur"]}
+        "usd": {
+            "positive": ["usd/", "u.s.", "greenback", "buck", "barnie", "america", "united states"],
+            "negative": ["/usd", "cable"]
+        },
+        "aud": {
+            "positive": ["aud/", "gold", "aussie", "australia"],
+            "negative": ["/aud"]
+        },
+        "gbp": {
+            "positive": ["gbp/", "sterling", "pound", "u.k.", "united kingdom", "cable", "guppy"],
+            "negative": ["/gbp"]
+        },
+        "nzd": {
+            "positive": ["nzd/", "gold", "kiwi", "new zealand"],
+            "negative": ["/nzd"]
+        },
+        "cad": {
+            "positive": ["cad/", "oil", "loonie", "canada"],
+            "negative": ["/cad"]
+        },
+        "chf": {
+            "positive": ["chf/", "swiss"],
+            "negative": ["/chf"]
+        },
+        "jpy": {
+            "positive": ["jpy/", "asian", "japan"],
+            "negative": ["/jpy", "guppy"]
+        },
+        "eur": {
+            "positive": ["eur/", "fiber", "euro"],
+            "negative": ["/eur"]
+        }
     }
 
     cpi_indicator.cpi_preprocess()
