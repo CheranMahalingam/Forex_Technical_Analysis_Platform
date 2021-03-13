@@ -65,7 +65,6 @@ def test_model(pair, window_size, batch_size, time_steps):
                     ]]
 
     df_train, df_val, df_test = create_split(series, 0.75, 0.1, batch_size, window_size)
-    print(f'df_train.shape {df_train.shape}, df_validation.shape {df_val.shape}, df_test.shape {df_test.shape}')
     df_test = df_test.copy()
     df_test.loc[:, ['Close']] = scaler.transform(df_test[['Close']])
     df_test.loc[:, ~df_test.columns.isin(['Close'])] = fScaler.transform(df_test.loc[:, ~df_test.columns.isin(['Close'])])

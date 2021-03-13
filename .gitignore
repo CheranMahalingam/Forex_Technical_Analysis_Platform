@@ -184,6 +184,8 @@ $RECYCLE.BIN/
 
 # Custom rules (everything added below won't be overriden by 'Generate .gitignore File' if you use 'Update' option)
 
-data/external/exchange_rates
-data/processed
-# logs
+lstm_model/data/external/exchange_rates
+lstm_model/data/processed
+lstm_model/data/interim
+lstm_model/notebooks/logs
+TA_Lib-0.4.19-cp38-cp38-win_amd64.whl

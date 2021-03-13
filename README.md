@@ -1,1 +1,1 @@
-# Forex_Sentiment_Analysis
+# Forex Technical Analysis Platform
