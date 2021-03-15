@@ -10,11 +10,14 @@ def interest_rate_preprocess():
     data. Reformats datetime and strips information outside of 2018-2020. The
     resulting dataframe is stored in the interim folder.
     """
-    ir_data = pd.read_csv("lstm_model/data/external/interest_rates/Interest_rates_2018-2020.csv")
+    ir_data = pd.read_csv(
+        "lstm_model/data/external/interest_rates/Interest_rates_2018-2020.csv"
+    )
     ir_data = ir_data.rename(columns={"TIME": "Time", "Value": "Interest Rate"})
     ir_data = ir_data[{"Time", "Interest Rate"}]
     ir_data["Time"] = ir_data["Time"].transform(
-        lambda time: datetime.strptime(time, "%Y-%m").strftime("%Y-%m-%d %H:%M:%S"))
+        lambda time: datetime.strptime(time, "%Y-%m").strftime("%Y-%m-%d %H:%M:%S")
+    )
 
     # Selects data relevant to time interval 2018-2020
     aud_ir = ir_data[13:49]
@@ -27,34 +30,37 @@ def interest_rate_preprocess():
     cad_ir = ir_data[111:147]
 
     # Creates a dataframe with dates from 2018-2020 on a 1 minute interval
-    time_frame = pd.date_range(start="2018-01-01 22:00:00", freq="1T", end="2020-12-31 21:59:00")
+    time_frame = pd.date_range(
+        start="2018-01-01 22:00:00", freq="1T", end="2020-12-31 21:59:00"
+    )
     time_frame = pd.DataFrame(time_frame, columns=["Time"])
     time_frame["Time"] = time_frame["Time"].dt.strftime("%Y-%m-%d %H:%M:%S")
 
     create_interest_rate_csv(
-        aud_ir, time_frame, aud_ir["Interest Rate"].iloc[0]).to_csv(
-            "lstm_model/data/interim/interest_rate/aud_ir_processed.csv", index=False)
+        aud_ir, time_frame, aud_ir["Interest Rate"].iloc[0]
+    ).to_csv("lstm_model/data/interim/interest_rate/aud_ir_processed.csv", index=False)
     create_interest_rate_csv(
-        cad_ir, time_frame, cad_ir["Interest Rate"].iloc[0]).to_csv(
-            "lstm_model/data/interim/interest_rate/cad_ir_processed.csv", index=False)
+        cad_ir, time_frame, cad_ir["Interest Rate"].iloc[0]
+    ).to_csv("lstm_model/data/interim/interest_rate/cad_ir_processed.csv", index=False)
     create_interest_rate_csv(
-        eur_ir, time_frame, eur_ir["Interest Rate"].iloc[0]).to_csv(
-            "lstm_model/data/interim/interest_rate/eur_ir_processed.csv", index=False)
+        eur_ir, time_frame, eur_ir["Interest Rate"].iloc[0]
+    ).to_csv("lstm_model/data/interim/interest_rate/eur_ir_processed.csv", index=False)
     create_interest_rate_csv(
-        jpy_ir, time_frame, jpy_ir["Interest Rate"].iloc[0]).to_csv(
-            "lstm_model/data/interim/interest_rate/jpy_ir_processed.csv", index=False)
+        jpy_ir, time_frame, jpy_ir["Interest Rate"].iloc[0]
+    ).to_csv("lstm_model/data/interim/interest_rate/jpy_ir_processed.csv", index=False)
     create_interest_rate_csv(
-        gbp_ir, time_frame, gbp_ir["Interest Rate"].iloc[0]).to_csv(
-            "lstm_model/data/interim/interest_rate/gbp_ir_processed.csv", index=False)
+        gbp_ir, time_frame, gbp_ir["Interest Rate"].iloc[0]
+    ).to_csv("lstm_model/data/interim/interest_rate/gbp_ir_processed.csv", index=False)
     create_interest_rate_csv(
-        nzd_ir, time_frame, nzd_ir["Interest Rate"].iloc[0]).to_csv(
-            "lstm_model/data/interim/interest_rate/nzd_ir_processed.csv", index=False)
+        nzd_ir, time_frame, nzd_ir["Interest Rate"].iloc[0]
+    ).to_csv("lstm_model/data/interim/interest_rate/nzd_ir_processed.csv", index=False)
     create_interest_rate_csv(
-        usd_ir, time_frame, usd_ir["Interest Rate"].iloc[0]).to_csv(
-            "lstm_model/data/interim/interest_rate/usd_ir_processed.csv", index=False)
+        usd_ir, time_frame, usd_ir["Interest Rate"].iloc[0]
+    ).to_csv("lstm_model/data/interim/interest_rate/usd_ir_processed.csv", index=False)
     create_interest_rate_csv(
-        chf_ir, time_frame, chf_ir["Interest Rate"].iloc[0]).to_csv(
-            "lstm_model/data/interim/interest_rate/chf_ir_processed.csv", index=False)
+        chf_ir, time_frame, chf_ir["Interest Rate"].iloc[0]
+    ).to_csv("lstm_model/data/interim/interest_rate/chf_ir_processed.csv", index=False)
+
 
 def create_interest_rate_csv(pair, time, initial):
     """

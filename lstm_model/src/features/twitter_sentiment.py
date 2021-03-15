@@ -17,7 +17,9 @@ def twitter_unpacking(account):
     Returns:
         Dataframe containing tweets from an account with post and date.
     """
-    tweets = pd.read_json("lstm_model/data/raw/tweets/{}_historical.json".format(account))
+    tweets = pd.read_json(
+        "lstm_model/data/raw/tweets/{}_historical.json".format(account)
+    )
     headline_arr = []
     date_arr = []
 
@@ -30,6 +32,7 @@ def twitter_unpacking(account):
     tweets_df = generate_sentiment_score(tweets_df)
     tweets_df["Time"] = tweets_df["Time"].dt.strftime("%Y-%m-%d %H:%M:00")
     return tweets_df
+
 
 def generate_sentiment_score(tweets):
     """
@@ -49,6 +52,7 @@ def generate_sentiment_score(tweets):
     tweets["Twitter_Sentiment"] = tweet_score
     return tweets
 
+
 def clean_tweets(tweets):
     """
     Strips twitter posts of uninformative special characters.
@@ -67,6 +71,7 @@ def clean_tweets(tweets):
     tweets = np.core.defchararray.replace(tweets, "\n", " ")
     return tweets
 
+
 def remove_pattern(input_text, pattern):
     """
     Finds patterns in posts and substitutes them with blank space.
@@ -83,6 +88,7 @@ def remove_pattern(input_text, pattern):
         input_text = re.sub(i, "", input_text)
     return input_text
 
+
 def tweets_merge(tweet_list):
     """
     Merges a list of tweet dataframes.
@@ -97,11 +103,16 @@ def tweets_merge(tweet_list):
         return None
     if len(tweet_list) == 1:
         return tweet_list[0]
-    merged_tweets = reduce(lambda left, right: pd.merge(
-        left, right, how="outer", on=["Time", "Post", "Twitter_Sentiment"]), tweet_list)
+    merged_tweets = reduce(
+        lambda left, right: pd.merge(
+            left, right, how="outer", on=["Time", "Post", "Twitter_Sentiment"]
+        ),
+        tweet_list,
+    )
     merged_tweets.sort_values(by=["Time"], inplace=True)
     merged_tweets = merged_tweets.reset_index(drop=True)
     return merged_tweets
+
 
 def currency_sentiment(currencies_dict, tweets):
     """
@@ -118,44 +129,57 @@ def currency_sentiment(currencies_dict, tweets):
             tweet_lower = tweets["Post"].transform(lambda post: post.lower())
             currency_df = tweets[tweet_lower.str.contains(entity)]
             currency_df = currency_df[{"Time", "Twitter_Sentiment"}]
-            currency_df = currency_df.rename(columns={"Twitter_Sentiment": currency.upper()})
+            currency_df = currency_df.rename(
+                columns={"Twitter_Sentiment": currency.upper()}
+            )
             if country_df.empty:
                 country_df = currency_df
             elif not currency.upper() in country_df.columns:
                 country_df = country_df.merge(currency_df, how="outer", on="Time")
             else:
                 country_df = country_df.merge(
-                    currency_df, how="outer", on=["Time", currency.upper()])
+                    currency_df, how="outer", on=["Time", currency.upper()]
+                )
         for entity in currencies_dict[currency]["negative"]:
             tweet_lower = tweets["Post"].transform(lambda post: post.lower())
             currency_df = tweets[tweet_lower.str.contains(entity)]
             currency_df = currency_df[{"Time", "Twitter_Sentiment"}]
-            currency_df["Twitter_Sentiment"] = currency_df["Twitter_Sentiment"].transform(
-                lambda score: -score)
-            currency_df = currency_df.rename(columns={"Twitter_Sentiment": currency.upper()})
+            currency_df["Twitter_Sentiment"] = currency_df[
+                "Twitter_Sentiment"
+            ].transform(lambda score: -score)
+            currency_df = currency_df.rename(
+                columns={"Twitter_Sentiment": currency.upper()}
+            )
             if country_df.empty:
                 country_df = currency_df
             elif not currency.upper() in country_df.columns:
                 country_df = country_df.merge(currency_df, how="outer", on="Time")
             else:
                 country_df = country_df.merge(
-                    currency_df, how="outer", on=["Time", currency.upper()])
+                    currency_df, how="outer", on=["Time", currency.upper()]
+                )
 
-    time_frame = pd.date_range(start="2018-01-01 22:00:00", freq="1T", end="2020-12-31 21:59:00")
+    time_frame = pd.date_range(
+        start="2018-01-01 22:00:00", freq="1T", end="2020-12-31 21:59:00"
+    )
     time_frame = pd.DataFrame(time_frame, columns=["Time"])
     time_frame["Time"] = time_frame["Time"].dt.strftime("%Y-%m-%d %H:%M:%S")
     country_df = country_df.reset_index(drop=True)
     country_df = combine_dates(country_df)
 
     country_df = time_frame.merge(country_df, how="left", on="Time")
-    country_df = country_df.sort_values(by='Time', ascending=True)
+    country_df = country_df.sort_values(by="Time", ascending=True)
 
     for currency in currencies_dict:
-        country_df[currency.upper()] = country_df[
-            currency.upper()].rolling(1440, min_periods=1).mean()
+        country_df[currency.upper()] = (
+            country_df[currency.upper()].rolling(1440, min_periods=1).mean()
+        )
     country_df = country_df.fillna(0)
 
-    country_df.to_csv("lstm_model/data/interim/tweets/tweets_sentiment.csv", index=False)
+    country_df.to_csv(
+        "lstm_model/data/interim/tweets/tweets_sentiment.csv", index=False
+    )
+
 
 def combine_dates(tweets):
     """
@@ -173,14 +197,16 @@ def combine_dates(tweets):
         current = tweets.at[i, "Time"]
         if current == tweets.at[i - length, "Time"] and i == len(tweets.index) - 1:
             for currency in currencies:
-                tweets.at[i - length, currency.upper()] = tweets[
-                    currency.upper()].iloc[i - length: i].mean()
+                tweets.at[i - length, currency.upper()] = (
+                    tweets[currency.upper()].iloc[i - length : i].mean()
+                )
         elif current == tweets.at[i - length, "Time"]:
             length += 1
         elif length > 1:
             for currency in currencies:
-                tweets.at[i - length, currency.upper()] = tweets[
-                    currency.upper()].iloc[i - length: i].mean()
+                tweets.at[i - length, currency.upper()] = (
+                    tweets[currency.upper()].iloc[i - length : i].mean()
+                )
             length = 1
     tweets.drop_duplicates(subset=["Time"], inplace=True)
     return tweets

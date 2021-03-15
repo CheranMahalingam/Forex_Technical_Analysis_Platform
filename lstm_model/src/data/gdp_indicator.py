@@ -17,10 +17,14 @@ def gdp_preprocess():
     # Dates come in format year-quarter and are converted to y-m-d H:M:S format
     gdp_data["Time"] = gdp_data["Time"].transform(
         lambda time: datetime.strptime(
-            convert_quarter_to_date(time), "%Y-%m-%d").strftime("%Y-%m-%d %H:%M:%S"))
+            convert_quarter_to_date(time), "%Y-%m-%d"
+        ).strftime("%Y-%m-%d %H:%M:%S")
+    )
 
     # Creates a dataframe with dates from 2018-2020 on a 1 minute interval
-    time_frame = pd.date_range(start="2018-01-01 22:00:00", freq="1T", end="2020-12-31 21:59:00")
+    time_frame = pd.date_range(
+        start="2018-01-01 22:00:00", freq="1T", end="2020-12-31 21:59:00"
+    )
     time_frame = pd.DataFrame(time_frame, columns=["Time"])
     time_frame["Time"] = time_frame["Time"].dt.strftime("%Y-%m-%d %H:%M:%S")
 
@@ -34,30 +38,31 @@ def gdp_preprocess():
     nzd_gdp = gdp_data[567:582]
     eur_gdp = gdp_data[720:736]
 
-    create_gdp_csv(
-        aud_gdp, time_frame, aud_gdp["GDP"].iloc[0]).to_csv(
-            "lstm_model/data/interim/gdp/aud_gdp_processed.csv", index=False)
-    create_gdp_csv(
-        gbp_gdp, time_frame, gbp_gdp["GDP"].iloc[0]).to_csv(
-            "lstm_model/data/interim/gdp/gbp_gdp_processed.csv", index=False)
-    create_gdp_csv(
-        jpy_gdp, time_frame, jpy_gdp["GDP"].iloc[0]).to_csv(
-            "lstm_model/data/interim/gdp/jpy_gdp_processed.csv", index=False)
-    create_gdp_csv(
-        cad_gdp, time_frame, cad_gdp["GDP"].iloc[0]).to_csv(
-            "lstm_model/data/interim/gdp/cad_gdp_processed.csv", index=False)
-    create_gdp_csv(
-        usd_gdp, time_frame, usd_gdp["GDP"].iloc[0]).to_csv(
-            "lstm_model/data/interim/gdp/usd_gdp_processed.csv", index=False)
-    create_gdp_csv(
-        chf_gdp, time_frame, chf_gdp["GDP"].iloc[0]).to_csv(
-            "lstm_model/data/interim/gdp/chf_gdp_processed.csv", index=False)
-    create_gdp_csv(
-        nzd_gdp, time_frame, nzd_gdp["GDP"].iloc[0]).to_csv(
-            "lstm_model/data/interim/gdp/nzd_gdp_processed.csv", index=False)
-    create_gdp_csv(
-        eur_gdp, time_frame, eur_gdp["GDP"].iloc[0]).to_csv(
-            "lstm_model/data/interim/gdp/eur_gdp_processed.csv", index=False)
+    create_gdp_csv(aud_gdp, time_frame, aud_gdp["GDP"].iloc[0]).to_csv(
+        "lstm_model/data/interim/gdp/aud_gdp_processed.csv", index=False
+    )
+    create_gdp_csv(gbp_gdp, time_frame, gbp_gdp["GDP"].iloc[0]).to_csv(
+        "lstm_model/data/interim/gdp/gbp_gdp_processed.csv", index=False
+    )
+    create_gdp_csv(jpy_gdp, time_frame, jpy_gdp["GDP"].iloc[0]).to_csv(
+        "lstm_model/data/interim/gdp/jpy_gdp_processed.csv", index=False
+    )
+    create_gdp_csv(cad_gdp, time_frame, cad_gdp["GDP"].iloc[0]).to_csv(
+        "lstm_model/data/interim/gdp/cad_gdp_processed.csv", index=False
+    )
+    create_gdp_csv(usd_gdp, time_frame, usd_gdp["GDP"].iloc[0]).to_csv(
+        "lstm_model/data/interim/gdp/usd_gdp_processed.csv", index=False
+    )
+    create_gdp_csv(chf_gdp, time_frame, chf_gdp["GDP"].iloc[0]).to_csv(
+        "lstm_model/data/interim/gdp/chf_gdp_processed.csv", index=False
+    )
+    create_gdp_csv(nzd_gdp, time_frame, nzd_gdp["GDP"].iloc[0]).to_csv(
+        "lstm_model/data/interim/gdp/nzd_gdp_processed.csv", index=False
+    )
+    create_gdp_csv(eur_gdp, time_frame, eur_gdp["GDP"].iloc[0]).to_csv(
+        "lstm_model/data/interim/gdp/eur_gdp_processed.csv", index=False
+    )
+
 
 def create_gdp_csv(pair_df, time_df, initial):
     """
@@ -76,6 +81,7 @@ def create_gdp_csv(pair_df, time_df, initial):
     pair_df.iloc[0, pair_df.columns.get_loc("GDP")] = initial
     pair_df = pair_df.fillna(method="ffill")
     return pair_df
+
 
 def convert_quarter_to_date(time):
     """

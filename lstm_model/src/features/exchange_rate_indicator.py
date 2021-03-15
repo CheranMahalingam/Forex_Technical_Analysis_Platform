@@ -16,23 +16,32 @@ def indicators_preprocess(pair):
     Args:
         pair: String representing the currency pair symbol(e.g EURUSD)
     """
-    currency = pd.read_csv("lstm_model/data/external/exchange_rates/{}_M1.csv".format(pair))
+    currency = pd.read_csv(
+        "lstm_model/data/external/exchange_rates/{}_M1.csv".format(pair)
+    )
     currency = convert_date(currency)
 
     currency = configure_time(15, currency)
 
     # pylint: disable=no-member
-    currency['EMA_10'] = pd.DataFrame(abstract.EMA(currency['Close'], timeperiod=960))
-    currency['EMA_50'] = pd.DataFrame(abstract.EMA(currency['Close'], timeperiod=4800))
-    currency['RSI'] = pd.DataFrame(abstract.RSI(currency['Close'], timeperiod=14))
-    currency['A/D Index'] = pd.DataFrame(
-        abstract.AD(currency['High'], currency['Low'], currency['Close'], currency['Volume']))
-    currency['A/D Index'] = currency['A/D Index'] - currency['A/D Index'].shift(1)
+    currency["EMA_10"] = pd.DataFrame(abstract.EMA(currency["Close"], timeperiod=960))
+    currency["EMA_50"] = pd.DataFrame(abstract.EMA(currency["Close"], timeperiod=4800))
+    currency["RSI"] = pd.DataFrame(abstract.RSI(currency["Close"], timeperiod=14))
+    currency["A/D Index"] = pd.DataFrame(
+        abstract.AD(
+            currency["High"], currency["Low"], currency["Close"], currency["Volume"]
+        )
+    )
+    currency["A/D Index"] = currency["A/D Index"] - currency["A/D Index"].shift(1)
     currency = stationary_log_returns(currency)
 
     currency["Time"] = currency["Time"].dt.strftime("%Y-%m-%d %H:%M:%S")
 
-    currency.to_csv("lstm_model/data/interim/exchange_rate/{}_exchange.csv".format(pair), index=False)
+    currency.to_csv(
+        "lstm_model/data/interim/exchange_rate/{}_exchange.csv".format(pair),
+        index=False,
+    )
+
 
 def convert_date(exchange):
     """
@@ -44,9 +53,10 @@ def convert_date(exchange):
     Returns:
         Dataframe for currency pair with datetime objects in Time column
     """
-    exchange = exchange.rename(columns={'DateTime': 'Time'})
+    exchange = exchange.rename(columns={"DateTime": "Time"})
     exchange["Time"] = pd.to_datetime(exchange["Time"]).dt.strftime("%Y-%m-%d %H:%M:%S")
     return exchange
+
 
 def stationary_log_returns(pair_df):
     """
@@ -59,11 +69,12 @@ def stationary_log_returns(pair_df):
         Dataframe with EMA and closing prices substituted with log returns
     """
     pair_df = pair_df.copy()
-    pair_df['Real Close'] = pair_df['Close']
-    pair_df["Close"] = np.log(pair_df["Close"]/pair_df["Close"].shift(1))
-    pair_df["EMA_10"] = np.log(pair_df["EMA_10"]/pair_df["EMA_10"].shift(1))
-    pair_df["EMA_50"] = np.log(pair_df["EMA_50"]/pair_df["EMA_50"].shift(1))
+    pair_df["Real Close"] = pair_df["Close"]
+    pair_df["Close"] = np.log(pair_df["Close"] / pair_df["Close"].shift(1))
+    pair_df["EMA_10"] = np.log(pair_df["EMA_10"] / pair_df["EMA_10"].shift(1))
+    pair_df["EMA_50"] = np.log(pair_df["EMA_50"] / pair_df["EMA_50"].shift(1))
     return pair_df
+
 
 def configure_time(minutes, pair_df):
     """
@@ -77,10 +88,13 @@ def configure_time(minutes, pair_df):
         Dataframe with technical indicators on x minute intervals.
     """
     time_frame = pd.date_range(
-        start="2017-01-01 22:00:00", freq="{}T".format(minutes), end="2020-12-31 21:59:00")
+        start="2017-01-01 22:00:00",
+        freq="{}T".format(minutes),
+        end="2020-12-31 21:59:00",
+    )
     time_frame = pd.DataFrame(time_frame, columns=["Time"])
     time_frame["Time"] = time_frame["Time"].dt.strftime("%Y-%m-%d %H:%M:%S")
-    time_frame['Time'] = pd.to_datetime(time_frame['Time'], utc=True)
-    pair_df['Time'] = pair_df['Time'].astype('datetime64[ns, UTC]')
+    time_frame["Time"] = pd.to_datetime(time_frame["Time"], utc=True)
+    pair_df["Time"] = pair_df["Time"].astype("datetime64[ns, UTC]")
     configured_df = time_frame.merge(pair_df, how="inner", on="Time")
     return configured_df

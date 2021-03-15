@@ -30,14 +30,18 @@ def news_unpacking(org):
             for summary in org_news["summary"][month]:
                 summary_arr.append(summary)
     if summary_arr:
-        org_df = pd.DataFrame({"Time": date_arr, "Headline": headline_arr, "Summary": summary_arr})
+        org_df = pd.DataFrame(
+            {"Time": date_arr, "Headline": headline_arr, "Summary": summary_arr}
+        )
     else:
         org_df = pd.DataFrame({"Time": date_arr, "Headline": headline_arr,})
     org_df["Time"] = org_df["Time"].transform(
-        lambda time: datetime.utcfromtimestamp(time).strftime("%Y-%m-%d %H:%M:00"))
+        lambda time: datetime.utcfromtimestamp(time).strftime("%Y-%m-%d %H:%M:00")
+    )
     org_df.sort_values(by=["Time"], inplace=True)
     org_df = org_df.reset_index(drop=True)
     return org_df
+
 
 def news_merge(news):
     """
@@ -54,10 +58,13 @@ def news_merge(news):
     if len(news) == 1:
         return news[0]
     merged_news = reduce(
-        lambda left, right: pd.merge(left, right, how="outer", on=["Time", "Headline"]), news)
+        lambda left, right: pd.merge(left, right, how="outer", on=["Time", "Headline"]),
+        news,
+    )
     merged_news.sort_values(by=["Time"], inplace=True)
     merged_news = merged_news.reset_index(drop=True)
     return merged_news
+
 
 def generate_sentiment_score(news):
     """
@@ -82,6 +89,7 @@ def generate_sentiment_score(news):
     news["News_Sentiment"] = news_score
     return news
 
+
 def currency_sentiment(currencies_dict, news):
     """
     Generates csv file containing news sentiment scores for each country according to date.
@@ -94,54 +102,79 @@ def currency_sentiment(currencies_dict, news):
     country_df = pd.DataFrame()
     for currency in currencies_dict:
         for entity in currencies_dict[currency]["positive"]:
-            headline_lower = news["Headline"].transform(lambda headline: headline.lower())
+            headline_lower = news["Headline"].transform(
+                lambda headline: headline.lower()
+            )
             summary_lower = news["Summary"].transform(
-                lambda summary: summary.lower() if type(summary) == "object" else summary)
-            currency_df = news[(headline_lower.str.contains(entity)) | \
-                (summary_lower.str.contains(entity))]
+                lambda summary: summary.lower()
+                if type(summary) == "object"
+                else summary
+            )
+            currency_df = news[
+                (headline_lower.str.contains(entity))
+                | (summary_lower.str.contains(entity))
+            ]
             currency_df = currency_df[{"Time", "News_Sentiment"}]
-            currency_df = currency_df.rename(columns={"News_Sentiment": currency.upper()})
+            currency_df = currency_df.rename(
+                columns={"News_Sentiment": currency.upper()}
+            )
             if country_df.empty:
                 country_df = currency_df
             elif not currency.upper() in country_df.columns:
                 country_df = country_df.merge(currency_df, how="outer", on="Time")
             else:
                 country_df = country_df.merge(
-                    currency_df, how="outer", on=["Time", currency.upper()])
+                    currency_df, how="outer", on=["Time", currency.upper()]
+                )
         for entity in currencies_dict[currency]["negative"]:
-            headline_lower = news["Headline"].transform(lambda headline: headline.lower())
+            headline_lower = news["Headline"].transform(
+                lambda headline: headline.lower()
+            )
             summary_lower = news["Summary"].transform(
-                lambda summary: summary.lower() if type(summary) == "object" else summary)
-            currency_df = news[(headline_lower.str.contains(entity)) | \
-                (summary_lower.str.contains(entity))]
+                lambda summary: summary.lower()
+                if type(summary) == "object"
+                else summary
+            )
+            currency_df = news[
+                (headline_lower.str.contains(entity))
+                | (summary_lower.str.contains(entity))
+            ]
             currency_df = currency_df[{"Time", "News_Sentiment"}]
             if not currency_df["News_Sentiment"].empty:
                 currency_df["News_Sentiment"] = currency_df["News_Sentiment"].transform(
-                    lambda score: -score)
-            currency_df = currency_df.rename(columns={"News_Sentiment": currency.upper()})
+                    lambda score: -score
+                )
+            currency_df = currency_df.rename(
+                columns={"News_Sentiment": currency.upper()}
+            )
             if country_df.empty:
                 country_df = currency_df
             elif not currency.upper() in country_df.columns:
                 country_df = country_df.merge(currency_df, how="outer", on="Time")
             else:
                 country_df = country_df.merge(
-                    currency_df, how="outer", on=["Time", currency.upper()])
+                    currency_df, how="outer", on=["Time", currency.upper()]
+                )
 
     country_df = combine_dates(country_df)
 
-    time_frame = pd.date_range(start="2018-01-01 22:00:00", freq="1T", end="2020-12-31 21:59:00")
+    time_frame = pd.date_range(
+        start="2018-01-01 22:00:00", freq="1T", end="2020-12-31 21:59:00"
+    )
     time_frame = pd.DataFrame(time_frame, columns=["Time"])
     time_frame["Time"] = time_frame["Time"].dt.strftime("%Y-%m-%d %H:%M:%S")
 
     country_df = time_frame.merge(country_df, how="outer", on="Time")
-    country_df = country_df.sort_values(by='Time', ascending=True)
+    country_df = country_df.sort_values(by="Time", ascending=True)
 
     for currency in currencies_dict:
-        country_df[currency.upper()] = country_df[currency.upper()].rolling(
-            1440, min_periods=1).mean()
+        country_df[currency.upper()] = (
+            country_df[currency.upper()].rolling(1440, min_periods=1).mean()
+        )
     country_df = country_df.fillna(0)
 
     country_df.to_csv("lstm_model/data/interim/news/news_sentiment.csv", index=False)
+
 
 def combine_dates(news):
     """
@@ -159,14 +192,16 @@ def combine_dates(news):
         current = news.at[i, "Time"]
         if current == news.at[i - length, "Time"] and i == len(news.index) - 1:
             for currency in currencies:
-                news.at[i - length, currency.upper()] = news[
-                    currency.upper()].iloc[i - length: i].mean()
+                news.at[i - length, currency.upper()] = (
+                    news[currency.upper()].iloc[i - length : i].mean()
+                )
         elif current == news.at[i - length, "Time"]:
             length += 1
         elif length > 1:
             for currency in currencies:
-                news.at[i - length, currency.upper()] = news[
-                    currency.upper()].iloc[i - length: i].mean()
+                news.at[i - length, currency.upper()] = (
+                    news[currency.upper()].iloc[i - length : i].mean()
+                )
             length = 1
     news.drop_duplicates(subset=["Time"], inplace=True)
     return news
