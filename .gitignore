@@ -189,3 +189,5 @@ lstm_model/data/processed
 lstm_model/data/interim
 lstm_model/notebooks/logs
 TA_Lib-0.4.19-cp38-cp38-win_amd64.whl
+
+api/.env

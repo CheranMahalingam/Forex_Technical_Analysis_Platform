@@ -1,15 +1,22 @@
 package websockets
 
-import "log"
+import (
+	"encoding/json"
+	"log"
+	"time"
+
+	"github.com/forexapi/technicalanalysis/controllers"
+)
 
 type Pool struct {
 	clients    map[*Client]bool
 	broadcast  chan []byte
 	register   chan *Client
 	unregister chan *Client
+	pair       string
 }
 
-func NewPool() *Pool {
+func NewPool(currencyPair string) *Pool {
 	return &Pool{
 		clients:    make(map[*Client]bool),
 		broadcast:  make(chan []byte),
@@ -38,6 +45,25 @@ func (p *Pool) Run() {
 					close(client.send)
 				}
 			}
+		}
+	}
+}
+
+func (p *Pool) ExchangeRateOnInterval(intervalSeconds time.Duration) {
+	ticker := time.NewTicker(intervalSeconds)
+	defer func() {
+		ticker.Stop()
+	}()
+	for {
+		select {
+		case <-ticker.C:
+			newRate := controllers.GetLatestRate("EUR_USD", 60, "1")
+			newRateJSON, err := json.Marshal(*newRate)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			p.broadcast <- newRateJSON
 		}
 	}
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import TextField from "@material-ui/core/TextField";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import Chip from "@material-ui/core/Chip";
@@ -10,6 +10,11 @@ import "./QuoteSelector.css";
 
 function QuoteSelector() {
   const [listedPairs, setListedPairs] = useState([]);
+
+  useEffect(() => {
+    const socket = new WebSocket("ws://localhost:8080/ws");
+    socket.onmessage = (evt) => console.log(evt.data);
+  }, []);
 
   const handlePairChange = (event, new_value) => {
     setListedPairs([...new_value]);

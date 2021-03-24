@@ -36,6 +36,7 @@ cython=0.29.22=py38hd77b12b_0
 decorator=4.4.2=pyhd3eb1b0_0
 defusedxml=0.7.1=pyhd3eb1b0_0
 entrypoints=0.3=py38_0
+finnhub-python=2.4.0=pypi_0
 freetype=2.10.4=hd328e21_0
 gast=0.4.0=py_0
 google-auth=1.27.1=pyhd3eb1b0_0
@@ -147,6 +148,7 @@ pytest=6.2.2=py38haa95532_2
 pytest-runner=5.3.0=pyhd3eb1b0_0
 python=3.8.8=hdbf39b2_4
 python-dateutil=2.8.1=pyhd3eb1b0_0
+python-dotenv=0.15.0=pypi_0
 pytz=2021.1=pyhd3eb1b0_0
 pywin32=227=py38he774522_1
 pywinpty=0.5.7=py38_0

@@ -30,15 +30,8 @@ const candlesAppearance = {
     return d.close > d.open ? "rgba(255, 7, 58, 1)" : "rgba(57, 255, 20, 1)";
   },
   candleStrokeWidth: 1,
-  width: 5
-}
-
-var xGrid = { 
-  //innerTickSize: -1 * gridHeight,
-  tickStrokeDasharray: 'Solid',
-  tickStrokeOpacity: 0.2,
-  tickStrokeWidth: 1
-}
+  width: 5,
+};
 
 function Quote(props) {
   const { type, width, ratio, data: initialData } = props;
@@ -111,7 +104,10 @@ function Quote(props) {
               displayFormat={timeFormat("%Y-%m-%d %H:%M:%S")}
               fill="#303030"
             />
-            <MouseCoordinateY displayFormat={pricesDisplayFormat} fill="#303030" />
+            <MouseCoordinateY
+              displayFormat={pricesDisplayFormat}
+              fill="#303030"
+            />
             <ZoomButtons />
           </Chart>
           <CrossHairCursor strokeDasharray="DashDot" strokeStyle="#4D4DFF" />

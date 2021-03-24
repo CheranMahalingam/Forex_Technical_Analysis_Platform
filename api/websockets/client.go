@@ -3,6 +3,8 @@ package websockets
 import (
 	"log"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -15,15 +17,51 @@ const (
 	maxMessageSize = 512
 )
 
+var (
+	newline = []byte{'\n'}
+	space   = []byte{' '}
+)
+
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  512,
 	WriteBufferSize: 512,
+	// We do not allow all origins to pass
+	CheckOrigin: func(r *http.Request) bool {
+		origin := r.Header.Get("Origin")
+		if origin == "" {
+			return true
+		}
+		originURL, err := url.Parse(origin)
+		// Only requests from localhost:3000 should be accepted
+		return err == nil && (strings.HasPrefix(originURL.Host, "localhost:3000"))
+	},
 }
 
 type Client struct {
 	pool *Pool
 	conn *websocket.Conn
 	send chan []byte
+}
+
+func (c *Client) readPump() {
+	defer func() {
+		c.pool.unregister <- c
+		c.conn.Close()
+	}()
+	c.conn.SetReadLimit(maxMessageSize)
+	c.conn.SetReadDeadline((time.Now().Add(pongWait)))
+	c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+	for {
+		_, message, err := c.conn.ReadMessage()
+		if err != nil {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				log.Printf("error: %v\n", err)
+			}
+			break
+		}
+		//message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
+		c.pool.broadcast <- message
+	}
 }
 
 func (c *Client) writePump() {
@@ -42,7 +80,7 @@ func (c *Client) writePump() {
 				return
 			}
 
-			w, err := c.conn.NextWriter(websocket.BinaryMessage)
+			w, err := c.conn.NextWriter(websocket.TextMessage)
 			if err != nil {
 				log.Println(err)
 				return
@@ -78,7 +116,8 @@ func ServeWs(pool *Pool, w http.ResponseWriter, r *http.Request) {
 	}
 	client := &Client{pool: pool, conn: conn, send: make(chan []byte)}
 	client.pool.register <- client
-	log.Println("serveWs: new client registered")
+	log.Println("ServeWs: new client registered")
 
 	go client.writePump()
+	go client.readPump()
 }
