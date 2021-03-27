@@ -22,21 +22,21 @@ const candlesAppearance = {
   wickStroke: function fill(d) {
     return d.close > d.open ? "rgba(255, 7, 58, 1)" : "rgba(57, 255, 20, 1)";
   },
-  /*fill: function fill(d) {
-    //return d.close > d.open ? "rgba(255, 7, 58, 1)" : "rgba(57, 255, 20, 1)";
-  },*/
+  //fill: function fill(d) {
+  //return d.close > d.open ? "rgba(255, 7, 58, 1)" : "rgba(57, 255, 20, 1)";
+  //},
   fill: "#000000",
   stroke: function outline(d) {
     return d.close > d.open ? "rgba(255, 7, 58, 1)" : "rgba(57, 255, 20, 1)";
   },
-  candleStrokeWidth: 1,
-  width: 5,
+  candleStrokeWidth: 0.5,
+  width: 3,
 };
 
 function Quote(props) {
   const { type, width, ratio, data: initialData } = props;
   const xScaleProvider = discontinuousTimeScaleProviderBuilder().inputDateAccessor(
-    (d) => d.date
+    (d) => d.timestamp
   );
   const { data, xScale, xAccessor, displayXAccessor } = xScaleProvider(
     initialData
@@ -44,13 +44,14 @@ function Quote(props) {
   const max = xAccessor(data[data.length - 1]);
   const min = xAccessor(data[0]);
   const xExtents = [min, max + 2];
-  const pricesDisplayFormat = format(".4f");
-  const margin = { left: 60, right: 50, top: 20, bottom: 20 };
+  const pricesDisplayFormat = format(".5f");
+  const margin = { left: 70, right: 70, top: 20, bottom: 30 };
+
   return (
     <React.Fragment>
       <div className="dark">
         <ChartCanvas
-          height={500}
+          height={400}
           ratio={ratio}
           width={width}
           margin={margin}
@@ -71,7 +72,7 @@ function Quote(props) {
           />*/}
           <Chart id={1} yExtents={(d) => [d.high, d.low]}>
             <XAxis
-              strokeStyle="#F72119"
+              strokeStyle="#FFFFFF"
               strokeDasharray="Solid"
               axisAt="bottom"
               orient="bottom"
@@ -96,6 +97,7 @@ function Quote(props) {
               edgeAt="right"
               yAccessor={(d) => d.close}
               lineStroke="#FFFFFF"
+              displayFormat={pricesDisplayFormat}
               fill={(d) => (d.close > d.open ? "#F72119" : "#39FF14")}
             />
             <MouseCoordinateX

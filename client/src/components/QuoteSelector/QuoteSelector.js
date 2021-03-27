@@ -4,32 +4,28 @@ import Autocomplete from "@material-ui/lab/Autocomplete";
 import Chip from "@material-ui/core/Chip";
 import { parseISO } from "date-fns";
 import Quote from "../Quote/Quote";
-import nice from "../Data";
-import fakeData from "../../assets/fake_data.json";
 import "./QuoteSelector.css";
 
 function QuoteSelector() {
   const [listedPairs, setListedPairs] = useState([]);
+  const [data, setData] = useState([]);
 
   useEffect(() => {
     const socket = new WebSocket("ws://localhost:8080/ws");
-    socket.onmessage = (evt) => console.log(evt.data);
+    socket.onmessage = (evt) => {
+      let parsedData = JSON.parse(evt.data);
+      console.log(parsedData);
+      for (let i = 0; i < parsedData.length; i++) {
+        parsedData[i].timestamp = parseISO(parsedData[i].timestamp);
+      }
+      console.log([...data, ...parsedData]);
+      setData((data) => [...data, ...parsedData]);
+    };
   }, []);
 
   const handlePairChange = (event, new_value) => {
     setListedPairs([...new_value]);
   };
-
-  const cool = fakeData.map((data) => {
-    const date = parseISO(data.date);
-    return {
-      date: date,
-      high: data.high,
-      low: data.low,
-      open: data.open,
-      close: data.close,
-    };
-  });
 
   return (
     <React.Fragment>
@@ -56,11 +52,11 @@ function QuoteSelector() {
             />
           )}
         />
-        {listedPairs &&
-          listedPairs.map((pair, index) => {
-            return <Quote key={index} data={nice} pair={pair} />;
-          })}
       </div>
+      {listedPairs &&
+        listedPairs.map((pair, index) => {
+          return <Quote key={index} data={data} pair={pair} />;
+        })}
     </React.Fragment>
   );
 }

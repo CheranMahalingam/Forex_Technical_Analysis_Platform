@@ -1,12 +1,14 @@
 package websockets
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
+	"github.com/forexapi/technicalanalysis/controllers"
 	"github.com/gorilla/websocket"
 )
 
@@ -79,24 +81,12 @@ func (c *Client) writePump() {
 				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
-
-			w, err := c.conn.NextWriter(websocket.TextMessage)
+			err := c.conn.WriteMessage(websocket.TextMessage, message)
 			if err != nil {
 				log.Println(err)
 				return
 			}
-			w.Write(message)
-
-			n := len(c.send)
-			for i := 0; i < n; i++ {
-				w.Write(<-c.send)
-			}
 			log.Println("writePump: messages written")
-
-			if err := w.Close(); err != nil {
-				log.Println(err)
-				return
-			}
 		case <-ticker.C:
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
@@ -120,4 +110,13 @@ func ServeWs(pool *Pool, w http.ResponseWriter, r *http.Request) {
 
 	go client.writePump()
 	go client.readPump()
+
+	// When a new client is registered they should be caught up with past data
+	newRate := controllers.GetLatestRate("EUR_USD", 86400, "1")
+	newRateJSON, err := json.Marshal(*newRate)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	client.send <- newRateJSON
 }
