@@ -15,14 +15,10 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error loading .env file")
 	}
-
-	pool := websockets.NewPool("EUR_USD")
-	go pool.Run()
-	go pool.ExchangeRateOnInterval(10 * time.Second)
 	r := mux.NewRouter()
-	r.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		websockets.ServeWs(pool, w, r)
-	})
+	r.HandleFunc("/ws", websockets.ServeWs)
+
+	websockets.SetupCurrencyPools(20 * time.Second)
 
 	corsOpts := cors.New(cors.Options{
 		AllowedOrigins: []string{"http://localhost:3000/"},
