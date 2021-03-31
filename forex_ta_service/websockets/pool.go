@@ -14,6 +14,7 @@ type Pool struct {
 	register     chan *Client
 	unregister   chan *Client
 	currencyPair string
+	previousRate *exchangerate.ExchangeRate
 }
 
 func newPool(currencyPair string) *Pool {
@@ -23,6 +24,7 @@ func newPool(currencyPair string) *Pool {
 		register:     make(chan *Client),
 		unregister:   make(chan *Client),
 		currencyPair: currencyPair,
+		previousRate: &exchangerate.ExchangeRate{},
 	}
 }
 
@@ -35,7 +37,7 @@ func (p *Pool) Run() {
 		case client := <-p.unregister:
 			if _, ok := p.clients[client]; ok {
 				delete(p.clients, client)
-				close(client.send)
+				//close(client.send)
 				log.Println("client unregistered")
 			}
 		case message := <-p.broadcast:
@@ -57,13 +59,16 @@ func (p *Pool) ExchangeRateOnInterval(interval time.Duration) {
 	for {
 		select {
 		case <-ticker.C:
-			newRate := exchangerate.GetLatestRate(p.currencyPair, 60, "1")
-			newRateJSON, err := json.Marshal(*newRate)
-			if err != nil {
-				log.Println(err)
-				return
+			newRate := exchangerate.GetLatestRate(p.currencyPair, p.previousRate, 60, 0, "1")
+			log.Println(p.previousRate, "Exchange Rate: latest", p.currencyPair)
+			if newRate != nil {
+				newRateJSON, err := json.Marshal(newRate)
+				if err != nil {
+					log.Println(err)
+					return
+				}
+				p.broadcast <- newRateJSON
 			}
-			p.broadcast <- newRateJSON
 		}
 	}
 }

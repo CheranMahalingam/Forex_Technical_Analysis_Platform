@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { format } from "d3-format";
 import { timeFormat } from "d3-time-format";
 import { Chart, ChartCanvas } from "@react-financial-charts/core";
@@ -6,7 +6,6 @@ import { XAxis, YAxis } from "@react-financial-charts/axes";
 import { discontinuousTimeScaleProviderBuilder } from "@react-financial-charts/scales";
 import { CandlestickSeries } from "@react-financial-charts/series";
 import { withDeviceRatio, withSize } from "@react-financial-charts/utils";
-import { fitWidth } from "react-stockcharts/lib/helper";
 import {
   CrossHairCursor,
   MouseCoordinateY,
@@ -16,7 +15,6 @@ import {
   EdgeIndicator,
   Label,
 } from "react-financial-charts";
-import "./Quote.css";
 
 const candlesAppearance = {
   wickStroke: function fill(d) {
@@ -34,7 +32,7 @@ const candlesAppearance = {
 };
 
 function Quote(props) {
-  const { type, width, ratio, data: initialData } = props;
+  const { type, height, width, ratio, data: initialData } = props;
   const xScaleProvider = discontinuousTimeScaleProviderBuilder().inputDateAccessor(
     (d) => d.timestamp
   );
@@ -49,72 +47,70 @@ function Quote(props) {
 
   return (
     <React.Fragment>
-      <div className="dark">
-        <ChartCanvas
-          height={400}
-          ratio={ratio}
-          width={width}
-          margin={margin}
-          type={type}
-          data={data}
-          seriesName="MSFT"
-          xAccessor={xAccessor}
-          xScale={xScale}
-          xExtents={xExtents}
-          displayXAccessor={displayXAccessor}
-          zoomAnchor={mouseBasedZoomAnchor}
-        >
-          {/*<Label
+      <ChartCanvas
+        height={height}
+        ratio={ratio}
+        width={width}
+        margin={margin}
+        type={type}
+        data={data}
+        seriesName="MSFT"
+        xAccessor={xAccessor}
+        xScale={xScale}
+        xExtents={xExtents}
+        displayXAccessor={displayXAccessor}
+        zoomAnchor={mouseBasedZoomAnchor}
+      >
+        {/*<Label
             x={(width - margin.left - margin.right) / 2}
             y={-5}
             fontSize="25"
             text={props.pair}
           />*/}
-          <Chart id={1} yExtents={(d) => [d.high, d.low]}>
-            <XAxis
-              strokeStyle="#FFFFFF"
-              strokeDasharray="Solid"
-              axisAt="bottom"
-              orient="bottom"
-              ticks={15}
-              tickLabelFill="#FFFFFF"
-              gridLinesStrokeDasharray="Solid"
-            />
-            <YAxis
-              showGridLines
-              strokeStyle="#FFFFFF"
-              axisAt="left"
-              orient="left"
-              ticks={10}
-              tickFormat={pricesDisplayFormat}
-              tickLabelFill="#FFFFFF"
-              gridLinesStrokeDasharray="Solid"
-            />
-            <CandlestickSeries {...candlesAppearance} />
-            <EdgeIndicator
-              itemType="last"
-              orient="right"
-              edgeAt="right"
-              yAccessor={(d) => d.close}
-              lineStroke="#FFFFFF"
-              displayFormat={pricesDisplayFormat}
-              fill={(d) => (d.close > d.open ? "#F72119" : "#39FF14")}
-            />
-            <MouseCoordinateX
-              at="bottom"
-              orient="bottom"
-              displayFormat={timeFormat("%Y-%m-%d %H:%M:%S")}
-              fill="#303030"
-            />
-            <MouseCoordinateY
-              displayFormat={pricesDisplayFormat}
-              fill="#303030"
-            />
-            <ZoomButtons />
-          </Chart>
-          <CrossHairCursor strokeDasharray="DashDot" strokeStyle="#4D4DFF" />
-        </ChartCanvas>
-      </div>
+        <Chart id={1} yExtents={(d) => [d.high, d.low]}>
+          <XAxis
+            strokeStyle="#FFFFFF"
+            strokeDasharray="Solid"
+            axisAt="bottom"
+            orient="bottom"
+            ticks={15}
+            tickLabelFill="#FFFFFF"
+            gridLinesStrokeDasharray="Solid"
+          />
+          <YAxis
+            showGridLines
+            strokeStyle="#FFFFFF"
+            axisAt="left"
+            orient="left"
+            ticks={10}
+            tickFormat={pricesDisplayFormat}
+            tickLabelFill="#FFFFFF"
+            gridLinesStrokeDasharray="Solid"
+          />
+          <CandlestickSeries {...candlesAppearance} />
+          <EdgeIndicator
+            itemType="last"
+            orient="right"
+            edgeAt="right"
+            yAccessor={(d) => d.close}
+            lineStroke="#FFFFFF"
+            displayFormat={pricesDisplayFormat}
+            fill={(d) => (d.close > d.open ? "#F72119" : "#39FF14")}
+          />
+          <MouseCoordinateX
+            at="bottom"
+            orient="bottom"
+            displayFormat={timeFormat("%Y-%m-%d %H:%M:%S")}
+            fill="#303030"
+          />
+          <MouseCoordinateY
+            displayFormat={pricesDisplayFormat}
+            fill="#303030"
+          />
+          <ZoomButtons />
+        </Chart>
+        <CrossHairCursor strokeDasharray="DashDot" strokeStyle="#4D4DFF" />
+      </ChartCanvas>
     </React.Fragment>
   );
 }
@@ -123,6 +119,6 @@ Quote.defaultProps = {
   type: "svg",
 };
 
-Quote = fitWidth(Quote);
-
-export default Quote;
+export default withSize({ style: { minHeight: 400 } })(
+  withDeviceRatio()(Quote)
+);

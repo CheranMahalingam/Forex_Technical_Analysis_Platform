@@ -27,10 +27,16 @@ function QuoteSelector() {
     for (let i = 0; i < newPairData.length; i++) {
       newPairData[i].timestamp = parseISO(newPairData[i].timestamp);
     }
-    let copyData = { ...data };
-    copyData[symbol].push(...newPairData);
-    console.log(copyData);
-    return copyData;
+    let copyObj = { ...data };
+    copyObj[symbol].push(...newPairData);
+    console.log(data);
+    return copyObj;
+  };
+
+  const removeDataSymbol = (symbol) => {
+    let copyObj = { ...data };
+    copyObj[symbol].length = 0;
+    return copyObj;
   };
 
   useEffect(() => {
@@ -44,7 +50,7 @@ function QuoteSelector() {
 
     socket.onmessage = (evt) => {
       console.log("onmessage");
-      setData(() => pushNewData(evt.data));
+      setData(pushNewData(evt.data));
     };
 
     socket.onerror = (err) => {
@@ -73,6 +79,7 @@ function QuoteSelector() {
           symbol: unsubscribedSymbol,
         })
       );
+      setData(removeDataSymbol(unsubscribedSymbol));
     }
     setListedPairs([...selected]);
   };
@@ -95,7 +102,7 @@ function QuoteSelector() {
   };
 
   const findRemovedSymbol = (selectedSymbols, subscribedSymbols) => {
-    if (selectedSymbols.length == 0) {
+    if (selectedSymbols.length === 0) {
       return subscribedSymbols[0];
     }
     for (let i = 0; i < subscribedSymbols.length; i++) {
@@ -139,7 +146,11 @@ function QuoteSelector() {
       </div>
       {listedPairs &&
         listedPairs.map((pair, index) => {
-          return <Quote key={index} data={data[pair]} pair={pair} />;
+          return (
+            <div className="dark">
+              <Quote key={index} data={data[pair]} pair={pair} />
+            </div>
+          );
         })}
     </React.Fragment>
   );
@@ -149,8 +160,8 @@ const currencyPairs = [
   "EURUSD",
   "GBPUSD",
   "USDCAD",
-  "USDJPY",
   "AUDUSD",
+  "USDJPY",
   "USDCHF",
   "NZDJPY",
 ];
