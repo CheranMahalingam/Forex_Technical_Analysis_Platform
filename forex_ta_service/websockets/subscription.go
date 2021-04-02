@@ -34,7 +34,7 @@ func subscribeToPool(pair string, client *Client) {
 
 	// When a new client subscribes to a pool they should be caught up with past data
 	for i := 5; i > 0; i-- {
-		newRate := exchangerate.GetLatestRate(pair, currencyPool.previousRate, 600*int64(i), 600*int64(i-1), "1")
+		newRate := exchangerate.GetLatestRate(pair, currencyPool.previousRate, 86400*int64(i), 86400*int64(i-1), "1")
 		if newRate == nil {
 			log.Println("Subscription: no data found")
 			continue
