@@ -28,6 +28,7 @@ function Macd(props) {
       ) : null}
       <YAxis
         showGridLines
+        gridLinesStrokeWidth={0.5}
         strokeStyle="#FFFFFF"
         axisAt="right"
         orient="right"
@@ -42,7 +43,7 @@ function Macd(props) {
         {...props.macdAppearance}
       />
       <MACDTooltip
-        origin={[10, 0]}
+        origin={[10, 10]}
         yAccessor={props.macdCalculator.accessor()}
         options={props.macdCalculator.options()}
         appearance={props.macdAppearance}

@@ -28,6 +28,7 @@ function Rsi(props) {
       ) : null}
       <YAxis
         showGridLines
+        gridLinesStrokeWidth={0.5}
         strokeStyle="#FFFFFF"
         axisAt="right"
         orient="right"

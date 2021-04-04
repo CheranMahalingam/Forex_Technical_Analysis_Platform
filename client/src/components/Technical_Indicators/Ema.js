@@ -13,7 +13,7 @@ function Ema(props) {
         );
       })}
       <MovingAverageTooltip
-        origin={[10, -45]}
+        origin={[10, -5]}
         textFill="#FFFFFF"
         labelFill="#FFFFFF"
         fontSize={12.5}

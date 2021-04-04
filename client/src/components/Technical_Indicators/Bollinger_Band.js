@@ -18,7 +18,7 @@ function BollingerBand(props) {
       />
       <BollingerBandTooltip
         options={props.bollingerCalculator.options()}
-        origin={[10, -3]}
+        origin={[10, 40]}
         textFill="#FFFFFF"
         labelFill="#FFFFFF"
         fontSize={12.5}
