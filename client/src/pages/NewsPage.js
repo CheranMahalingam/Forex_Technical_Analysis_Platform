@@ -1,9 +1,10 @@
 import React from "react";
+import NavigationMenu from "../components/NavigationMenu/NavigationMenu";
 
 function NewsPage() {
   return (
     <React.Fragment>
-      <p>News Page</p>
+      <NavigationMenu />
     </React.Fragment>
   );
 }

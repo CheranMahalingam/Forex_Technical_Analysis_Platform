@@ -42,10 +42,11 @@ func (p *Pool) Run() {
 			}
 		case message := <-p.broadcast:
 			for client := range p.clients {
-				client.send <- message
-				/*default:
-				delete(p.clients, client)
-				close(client.send)*/
+				select {
+				case client.send <- message:
+				default:
+					delete(p.clients, client)
+				}
 			}
 		}
 	}

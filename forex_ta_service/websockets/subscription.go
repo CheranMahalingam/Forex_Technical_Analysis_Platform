@@ -13,7 +13,7 @@ type SubscriptionMessage struct {
 	Symbol      string `json:"symbol"`
 }
 
-var currencyPairs = [2]string{"EURUSD", "GBPUSD"} //, "USDCAD", "AUDUSD"}
+var currencyPairs = [4]string{"EURUSD", "GBPUSD", "USDCAD", "AUDUSD"}
 var currencyPoolMap = make(map[string]*Pool)
 
 func SetupCurrencyPools(interval time.Duration) {
@@ -56,8 +56,14 @@ func unsubscribeFromPool(pair string, client *Client) {
 			poolLength := len(*(client.pool))
 			(*(client.pool))[index] = (*(client.pool))[poolLength-1]
 			(*(client.pool)) = (*(client.pool))[:poolLength-1]
+			log.Printf("Client unregistered from %s pool\n", pair)
 		}
 	}
 	currencyPool.unregister <- client
-	log.Printf("Client unregistered from %s pool\n", pair)
+}
+
+func unsubscribeFromAllPools(client *Client) {
+	for _, pair := range currencyPairs {
+		unsubscribeFromPool(pair, client)
+	}
 }

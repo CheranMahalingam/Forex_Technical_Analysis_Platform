@@ -60,6 +60,7 @@ func (c *Client) readPump() {
 		err := c.conn.ReadJSON(&message)
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				unsubscribeFromAllPools(c)
 				log.Printf("error: %v\n", err)
 			}
 			break

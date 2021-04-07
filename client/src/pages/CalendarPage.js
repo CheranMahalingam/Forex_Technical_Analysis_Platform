@@ -1,9 +1,10 @@
 import React from "react";
+import NavigationMenu from "../components/NavigationMenu/NavigationMenu";
 
 function CalendarPage() {
   return (
     <React.Fragment>
-      <p>Calendar Page</p>
+      <NavigationMenu />
     </React.Fragment>
   );
 }
