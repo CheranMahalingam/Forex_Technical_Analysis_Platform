@@ -57,12 +57,12 @@ def train_model(pair, batch_size, window_size, nodes_arr, optimizer, dropout, ep
 
     series = series.drop(['Time', 'Real Close'], axis=1)
     series = series[['Close', 'EMA_10', 'EMA_50', 'RSI', 'A/D Index',
-                     '{} Interest Rate'.format(buy), '{} Interest Rate'.format(
-                         sell), '{}_CPI'.format(buy), '{}_CPI'.format(sell),
+                     #'{} Interest Rate'.format(buy), '{} Interest Rate'.format(
+                     #    sell), '{}_CPI'.format(buy), '{}_CPI'.format(sell),
                      '{} Twitter Sentiment'.format(
                          buy), '{} Twitter Sentiment'.format(sell),
-                     '{} News Sentiment'.format(
-                         buy), '{} News Sentiment'.format(sell),
+                     #'{} News Sentiment'.format(
+                     #    buy), '{} News Sentiment'.format(sell),
                      #'EUR_GDP', 'USD_GDP', 'EUR_PPI', 'USD_PPI', 'USD Unemployment Rate', 'EUR Unemployment Rate'
                      ]]
 

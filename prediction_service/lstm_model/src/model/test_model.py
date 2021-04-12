@@ -64,12 +64,12 @@ def test_model(pair, window_size, batch_size, time_steps):
 
     series = series.drop(['Time', 'Real Close'], axis=1)
     series = series[['Close', 'EMA_10', 'EMA_50', 'RSI', 'A/D Index',
-                     '{} Interest Rate'.format(buy), '{} Interest Rate'.format(
-                         sell), '{}_CPI'.format(buy), '{}_CPI'.format(sell),
+                     #'{} Interest Rate'.format(buy), '{} Interest Rate'.format(
+                     #    sell), '{}_CPI'.format(buy), '{}_CPI'.format(sell),
                      '{} Twitter Sentiment'.format(
                          buy), '{} Twitter Sentiment'.format(sell),
-                     '{} News Sentiment'.format(
-                         buy), '{} News Sentiment'.format(sell),
+                     #'{} News Sentiment'.format(
+                     #    buy), '{} News Sentiment'.format(sell),
                      #'EUR_GDP', 'USD_GDP', 'EUR Unemployment Rate', 'USD Unemployment Rate', 'EUR_PPI', 'USD_PPI'
                      ]]
 
