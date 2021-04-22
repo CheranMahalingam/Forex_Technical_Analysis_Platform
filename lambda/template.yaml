@@ -1,0 +1,181 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Forex Data Streaming Template
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 10
+
+Parameters:
+  ProjectApiKey:
+    Type: String
+    Description: Finnhub API Key
+
+Resources:
+    SymbolDataFunction:
+      Type: AWS::Serverless::Function
+      Properties:
+        PackageType: Image
+        Environment:
+            Variables:
+              ProjectApiKey: !Ref ProjectApiKey
+        Events:
+          ScheduledFinnhubCall:
+            Type: Schedule
+            Properties:
+              Schedule: rate(2 minutes)
+        Policies:
+          - Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:DeleteItem
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                Resource:
+                  !Join
+                    - ''
+                    - - 'arn:aws:dynamodb:'
+                      - !Ref AWS::Region
+                      - ':'
+                      - !Ref AWS::AccountId
+                      - ':table/SymbolRateTable'
+      Metadata:
+        DockerTag: go1.x-v1
+        DockerContext: ./technical-analysis-lambda
+        Dockerfile: Dockerfile
+    
+    WebsocketMessageFunction:
+      Type: AWS::Serverless::Function
+      Properties:
+        PackageType: Image
+        Policies:
+          - DynamoDBCrudPolicy:
+            TableName: WebsocketConnectionsTable
+      Metadata:
+        DockerTag: go1.x-v1
+        DockerContext: ./websocket-server-lambda
+        Dockerfile: Dockerfile
+
+    ForexDataWebsocket:
+      Type: AWS::ApiGatewayV2::Api
+      Properties:
+        Name: ForexDataWebsocket
+        ProtocolType: WEBSOCKET
+        RouteSelectionExpression: $request.body.action
+
+    ConnectRoute:
+      Type: AWS::ApiGatewayV2::Route
+      Properties:
+        ApiId: !Ref ForexDataWebsocket
+        RouteKey: $connect
+        AuthorizationType: NONE
+        OperationName: ConnectRoute
+        Target: !Join
+          - '/'
+          - - 'integrations'
+            - !Ref ConnectIntegration
+    ConnectIntegration:
+      Type: AWS::ApiGatewayV2::Integration
+      Properties:
+        ApiId: !Ref ForexDataWebsocket
+        IntegrationType: AWS_PROXY
+        IntegrationUri:
+          Fn::Sub:
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WebsocketMessageFunction.Arn}/invocations
+
+    DisconnectRoute:
+      Type: AWS::ApiGatewayV2::Route
+      Properties:
+        ApiId: !Ref ForexDataWebsocket
+        RouteKey: $disconnect
+        AuthorizationType: NONE
+        OperationName: DisconnectRoute
+        Target: !Join
+          - '/'
+          - - 'integrations'
+            - !Ref DisconnectIntegration
+    DisconnectIntegration:
+      Type: AWS::ApiGatewayV2::Integration
+      Properties:
+        ApiId: !Ref ForexDataWebsocket
+        IntegrationType: AWS_PROXY
+        IntegrationUri:
+          Fn::Sub:
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WebsocketMessageFunction.Arn}/invocations
+
+    Deployment:
+      Type: AWS::ApiGatewayV2::Deployment
+      DependsOn:
+        - ConnectRoute
+        - DisconnectRoute
+      Properties:
+        ApiId: !Ref ForexDataWebsocket
+    Stage:
+      Type: AWS::ApiGatewayV2::Stage
+      Properties:
+        StageName: Prod
+        DeploymentId: !Ref Deployment
+        ApiId: !Ref ForexDataWebsocket
+
+    OnConnectPermission:
+      Type: AWS::Lambda::Permission
+      DependsOn:
+        - ForexDataWebsocket
+      Properties:
+        Action: lambda:InvokeFunction
+        FunctionName: !Ref WebsocketMessageFunction
+        Principal: apigateway.amazonaws.com
+
+    OnDisconnectPermission:
+      Type: AWS::Lambda::Permission
+      DependsOn:
+        - ForexDataWebsocket
+      Properties:
+        Action: lambda:InvokeFunction
+        FunctionName: !Ref WebsocketMessageFunction
+        Principal: apigateway.amazonaws.com
+
+    SymbolRateTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: SymbolRateTable
+        AttributeDefinitions:
+          - AttributeName: Date
+            AttributeType: S
+          - AttributeName: Timestamp
+            AttributeType: S
+        KeySchema:
+          - AttributeName: Date
+            KeyType: HASH
+          - AttributeName: Timestamp
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+    
+    WebsocketConnectionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: WebsocketConnectionsTable
+        AttributeDefinitions:
+          - AttributeName: ConnectionId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: ConnectionId
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+
+Outputs:
+  WebsocketConnectionsTableArn:
+    Value: !GetAtt WebsocketConnectionsTable.Arn
+  
+  WebsocketMessageFunctionArn:
+    Value: !GetAtt WebsocketMessageFunction.Arn
+
+  WebSocketURI:
+    Value: !Join ['', ['wss://', !Ref ForexDataWebsocket, '.execute-api', !Ref 'AWS::Region', '.amazonaws.com/', !Ref 'Stage']]

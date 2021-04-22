@@ -13,7 +13,7 @@ type SubscriptionMessage struct {
 	Symbol      string `json:"symbol"`
 }
 
-var currencyPairs = [4]string{"EURUSD", "GBPUSD", "USDCAD", "AUDUSD"}
+var currencyPairs = [2]string{"EURUSD", "GBPUSD"}
 var currencyPoolMap = make(map[string]*Pool)
 
 func SetupCurrencyPools(interval time.Duration) {
@@ -33,7 +33,7 @@ func subscribeToPool(pair string, client *Client) {
 	currencyPool.register <- client
 
 	// When a new client subscribes to a pool they should be caught up with past data
-	for i := 5; i > 0; i-- {
+	for i := 1; i > 0; i-- {
 		newRate := exchangerate.GetLatestRate(pair, currencyPool.previousRate, 86400*int64(i), 86400*int64(i-1), "1")
 		if newRate == nil {
 			log.Println("Subscription: no data found")

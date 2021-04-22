@@ -18,7 +18,7 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/ws", websockets.ServeWs)
 
-	websockets.SetupCurrencyPools(60 * time.Second)
+	websockets.SetupCurrencyPools(120 * time.Second)
 
 	corsOpts := cors.New(cors.Options{
 		AllowedOrigins: []string{"http://localhost:3000/"},

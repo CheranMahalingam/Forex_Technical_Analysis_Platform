@@ -17,6 +17,8 @@ type Pool struct {
 	previousRate *exchangerate.ExchangeRate
 }
 
+var lmao = [2]string{"EURUSD", "GBPUSD"}
+
 func newPool(currencyPair string) *Pool {
 	return &Pool{
 		clients:      make(map[*Client]bool),
@@ -60,8 +62,9 @@ func (p *Pool) ExchangeRateOnInterval(interval time.Duration) {
 	for {
 		select {
 		case <-ticker.C:
-			newRate := exchangerate.GetLatestRate(p.currencyPair, p.previousRate, 60, 0, "1")
-			log.Println(p.previousRate, "Exchange Rate: latest", p.currencyPair)
+			newRate := exchangerate.GetLatestRate(p.currencyPair, p.previousRate, 120, 0, "1")
+			log.Println(*exchangerate.CreateNewSymbolRate(&lmao, 120, 0, "1"))
+			log.Println("Exchange Rate: latest", newRate)
 			if newRate != nil {
 				newRateJSON, err := json.Marshal(newRate)
 				if err != nil {
