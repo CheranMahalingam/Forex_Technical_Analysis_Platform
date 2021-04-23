@@ -126,7 +126,7 @@ function QuoteSelector() {
     if (selected.length > listedPairs.length) {
       let subscribedSymbol = findMissingElement(selected, listedPairs);
       socket.send(
-        JSON.stringify({ messageType: "subscribe", symbol: subscribedSymbol })
+        JSON.stringify({ message: "subscribe", data: subscribedSymbol })
       );
       let newHeight;
       if (Object.keys(quoteHeight).length !== 0) {
@@ -151,8 +151,8 @@ function QuoteSelector() {
       let unsubscribedSymbol = findMissingElement(listedPairs, selected);
       socket.send(
         JSON.stringify({
-          messageType: "unsubscribe",
-          symbol: unsubscribedSymbol,
+          message: "unsubscribe",
+          data: unsubscribedSymbol,
         })
       );
       setData(removeProperty({ ...data }, unsubscribedSymbol));
