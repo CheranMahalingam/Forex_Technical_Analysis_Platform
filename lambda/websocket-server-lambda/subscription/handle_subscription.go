@@ -1,4 +1,4 @@
-package connection
+package subscription
 
 import (
 	"encoding/json"
@@ -13,18 +13,13 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
 
-type Message struct {
-	Message string
-	Data    string
-}
-
 func HandleSubscription(connectionId string, event events.APIGatewayWebsocketProxyRequest, subscribe bool) error {
 	log.Println(event.Body)
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 	}))
 
-	msg := Message{}
+	msg := SubscriptionMessage{}
 	err := json.Unmarshal([]byte(event.Body), &msg)
 	if err != nil {
 		log.Println(err)

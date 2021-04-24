@@ -5,3 +5,7 @@ type Connection struct {
 	EurUsd       bool
 	GbpUsd       bool
 }
+
+func CreateNewConnection(connectionId string) *Connection {
+	return &Connection{ConnectionId: connectionId, EurUsd: false, GbpUsd: false}
+}

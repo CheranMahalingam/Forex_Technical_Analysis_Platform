@@ -2,6 +2,7 @@ package exchangerate
 
 import (
 	"context"
+	"errors"
 	"log"
 	"os"
 	"time"
@@ -11,7 +12,7 @@ import (
 	finnhub "github.com/Finnhub-Stock-API/finnhub-go"
 )
 
-func CreateNewSymbolRate(symbols *[2]string, startSeconds int64, endSeconds int64, period string) *[]dynamosymbol.SymbolRateItem {
+func CreateNewSymbolRate(symbols *[2]string, startSeconds int64, endSeconds int64, period string) (*[]dynamosymbol.SymbolRateItem, error) {
 	finnhubClient := finnhub.NewAPIClient(finnhub.NewConfiguration()).DefaultApi
 	auth := context.WithValue(context.Background(), finnhub.ContextAPIKey, finnhub.APIKey{
 		Key: os.Getenv("ProjectApiKey"),
@@ -29,11 +30,11 @@ func CreateNewSymbolRate(symbols *[2]string, startSeconds int64, endSeconds int6
 		if err != nil {
 			log.Println("Issue connecting to forex client")
 			log.Println(err)
-			return nil
+			return nil, errors.New("forex client connection error")
 		}
 		if forexCandles.S != "ok" {
 			log.Println("No data received")
-			return nil
+			return nil, nil
 		}
 
 		log.Println(forexCandles)
@@ -78,7 +79,7 @@ func CreateNewSymbolRate(symbols *[2]string, startSeconds int64, endSeconds int6
 			}
 		}
 	}
-	return &symbolRateItems
+	return &symbolRateItems, nil
 }
 
 func searchTimeIndex(symbolData *[]dynamosymbol.SymbolRateItem, date string, timestamp string) int {

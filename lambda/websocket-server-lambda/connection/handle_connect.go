@@ -15,7 +15,7 @@ func HandleConnect(connectionId string) error {
 		SharedConfigState: session.SharedConfigEnable,
 	}))
 
-	connectionItem := Connection{ConnectionId: connectionId, EurUsd: false, GbpUsd: false}
+	connectionItem := CreateNewConnection(connectionId)
 
 	svc := dynamodb.New(sess)
 
