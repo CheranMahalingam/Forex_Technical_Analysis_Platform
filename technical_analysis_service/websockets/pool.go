@@ -62,8 +62,8 @@ func (p *Pool) ExchangeRateOnInterval(interval time.Duration) {
 	for {
 		select {
 		case <-ticker.C:
-			newRate := exchangerate.GetLatestRate(p.currencyPair, p.previousRate, 120, 0, "1")
-			log.Println(*exchangerate.CreateNewSymbolRate(&lmao, 120, 0, "1"))
+			newRate := exchangerate.GetLatestRate(p.currencyPair, p.previousRate, 120+48*60*60, 0+48*60*60, "1")
+			//log.Println(*exchangerate.CreateNewSymbolRate(&lmao, 120, 0, "1"))
 			log.Println("Exchange Rate: latest", newRate)
 			if newRate != nil {
 				newRateJSON, err := json.Marshal(newRate)

@@ -1,4 +1,4 @@
-package websocket
+package subscription
 
 type CallbackMessageData struct {
 	Timestamp string  `json:"timestamp"`

@@ -9,8 +9,8 @@ import (
 )
 
 type SubscriptionMessage struct {
-	MessageType string `json:"messageType"`
-	Symbol      string `json:"symbol"`
+	MessageType string `json:"message"`
+	Symbol      string `json:"data"`
 }
 
 var currencyPairs = [2]string{"EURUSD", "GBPUSD"}
@@ -34,7 +34,7 @@ func subscribeToPool(pair string, client *Client) {
 
 	// When a new client subscribes to a pool they should be caught up with past data
 	for i := 1; i > 0; i-- {
-		newRate := exchangerate.GetLatestRate(pair, currencyPool.previousRate, 86400*int64(i), 86400*int64(i-1), "1")
+		newRate := exchangerate.GetLatestRate(pair, currencyPool.previousRate, 86400*int64(i)+48*60*60, 86300*int64(i)+48*60*60, "1")
 		if newRate == nil {
 			log.Println("Subscription: no data found")
 			continue

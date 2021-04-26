@@ -87,7 +87,7 @@ function Quote(props) {
   const { data, xScale, xAccessor, displayXAccessor } = xScaleProvider(
     calculatedData
   );
-  const max = xAccessor(last(data));
+  const max = xAccessor(data[data.length - 1]);
   const min = xAccessor(data.length > 200 ? data[data.length - 200] : data[0]);
   const xExtents = [min, max + 1];
   const margin = { left: 20, right: 80, top: 50, bottom: 30 };

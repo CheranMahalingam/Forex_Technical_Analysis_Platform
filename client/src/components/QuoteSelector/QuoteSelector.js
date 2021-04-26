@@ -8,7 +8,7 @@ import Quote from "../Quote/Quote";
 import { findMissingElement } from "../../utils/arrayUtils";
 import { removeProperty } from "../../utils/parseObjectUtils";
 
-var socket = new WebSocket("ws://localhost:8080/ws");
+var socket;
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -66,20 +66,24 @@ function QuoteSelector() {
   const chartSpacingHeight = 120;
 
   const pushNewData = (newData) => {
+    console.log(newData);
     let parsedData = JSON.parse(newData);
     const symbol = Object.keys(parsedData)[0];
     let newPairData = parsedData[symbol];
+    if (!newPairData) {
+      return data
+    }
     for (let i = 0; i < newPairData.length; i++) {
       newPairData[i].timestamp = parseISO(newPairData[i].timestamp);
     }
     let copyObj = { ...data };
     copyObj[symbol].push(...newPairData);
-    console.log(data);
+    console.log(copyObj);
     return copyObj;
   };
 
   useEffect(() => {
-    socket = new WebSocket("ws://localhost:8080/ws");
+    socket = new WebSocket(process.env.REACT_APP_WEBSOCKET_URI);
 
     socket.onopen = () => {
       console.log("websocket connected");
@@ -140,7 +144,6 @@ function QuoteSelector() {
         newHeight = searchHeight;
       }
       let newHeightObj = { ...quoteHeight, [subscribedSymbol]: [newHeight, 0] };
-      console.log(newHeightObj);
       setQuoteHeight(newHeightObj);
       setSelectedIndicators({ ...selectedIndicators, [subscribedSymbol]: [] });
       setIndicatorHeight({
@@ -155,7 +158,11 @@ function QuoteSelector() {
           data: unsubscribedSymbol,
         })
       );
-      setData(removeProperty({ ...data }, unsubscribedSymbol));
+      setData((data) => {
+        let unsubscribedData = {...data};
+        unsubscribedData[unsubscribedSymbol].length = 0;
+        return unsubscribedData;
+      });
       let newHeight = adjustHeight(
         unsubscribedSymbol,
         -chartHeight - chartSpacingHeight - quoteHeight[unsubscribedSymbol][1]

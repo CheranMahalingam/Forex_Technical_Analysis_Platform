@@ -25,7 +25,7 @@ type SymbolRateItem struct {
 
 // Toggle to switch between getting real data and generating fake data
 // When false there is no risk of being rate limited by finnhub api
-const isRealData bool = true
+const isRealData bool = false
 
 func rateReduce(currencyData *[]ExchangeRate, prevRate *ExchangeRate) *[]ExchangeRate {
 	filteredCurrencyData := []ExchangeRate{}

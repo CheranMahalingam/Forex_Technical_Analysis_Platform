@@ -11,6 +11,6 @@ type SymbolData struct {
 type SymbolRateItem struct {
 	Date      string
 	Timestamp string
-	EurUsd    SymbolData
-	GbpUsd    SymbolData
+	EURUSD    SymbolData
+	GBPUSD    SymbolData
 }

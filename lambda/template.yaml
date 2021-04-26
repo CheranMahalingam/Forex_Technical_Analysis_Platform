@@ -166,8 +166,9 @@ Resources:
       Properties:
         PackageType: Image
         FunctionName: WebsocketMessageFunction
-
         Policies:
+          - DynamoDBCrudPolicy:
+              TableName: !Ref SymbolRateTable
           - DynamoDBCrudPolicy:
               TableName: !Ref WebsocketConnectionsTable
           - Statement:

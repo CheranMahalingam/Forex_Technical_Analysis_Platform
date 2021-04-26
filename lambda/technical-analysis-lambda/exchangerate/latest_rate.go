@@ -61,19 +61,19 @@ func CreateNewSymbolRate(symbols *[2]string, startSeconds int64, endSeconds int6
 				if searchTimeIndex(&symbolRateItems, formattedDate, formattedTimestamp) == -1 {
 					switch symbol {
 					case "EURUSD":
-						newSymbolRateItem := dynamosymbol.SymbolRateItem{Date: formattedDate, Timestamp: formattedTimestamp, EurUsd: newSymbolData}
+						newSymbolRateItem := dynamosymbol.SymbolRateItem{Date: formattedDate, Timestamp: formattedTimestamp, EURUSD: newSymbolData}
 						symbolRateItems = append(symbolRateItems, newSymbolRateItem)
 					case "GBPUSD":
-						newSymbolRateItem := dynamosymbol.SymbolRateItem{Date: formattedDate, Timestamp: formattedTimestamp, GbpUsd: newSymbolData}
+						newSymbolRateItem := dynamosymbol.SymbolRateItem{Date: formattedDate, Timestamp: formattedTimestamp, GBPUSD: newSymbolData}
 						symbolRateItems = append(symbolRateItems, newSymbolRateItem)
 					}
 				} else {
 					index := searchTimeIndex(&symbolRateItems, formattedDate, formattedTimestamp)
 					switch symbol {
 					case "EURUSD":
-						symbolRateItems[index].EurUsd = newSymbolData
+						symbolRateItems[index].EURUSD = newSymbolData
 					case "GBPUSD":
-						symbolRateItems[index].GbpUsd = newSymbolData
+						symbolRateItems[index].GBPUSD = newSymbolData
 					}
 				}
 			}
