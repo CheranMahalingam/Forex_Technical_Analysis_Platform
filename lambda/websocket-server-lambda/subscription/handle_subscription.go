@@ -17,7 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/expression"
 )
 
-type ExchangeRate struct {
+type exchangeRate struct {
 	Open   float32
 	High   float32
 	Low    float32
@@ -25,20 +25,14 @@ type ExchangeRate struct {
 	Volume float32
 }
 
-type dynamodbEurUsd struct {
+type ExchangeRateTable struct {
 	Date      string
 	Timestamp string
-	EURUSD    ExchangeRate
-}
-
-type dynamodbGbpUsd struct {
-	Date      string
-	Timestamp string
-	GBPUSD    ExchangeRate
+	EURUSD    exchangeRate
+	GBPUSD    exchangeRate
 }
 
 func HandleSubscription(connectionId string, event events.APIGatewayWebsocketProxyRequest, subscribe bool) error {
-	log.Println(event.Body)
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 	}))
@@ -74,32 +68,42 @@ func HandleSubscription(connectionId string, event events.APIGatewayWebsocketPro
 	}
 
 	if subscribe {
-		newDataQuery, err := initialSubscriptionData(msg.Data, connectionId, 1)
-		if err != nil {
-			return err
-		}
+		currentDate := time.Now()
+		previousDay := currentDate.Add(-time.Hour * 48)
+		log.Println(currentDate)
+		log.Println(previousDay)
+		keyCond := expression.Key("Date").Equal(expression.Value(currentDate.Format("2006-01-02")))
+		prevKeyCond := expression.KeyAnd(
+			expression.Key("Date").Equal(expression.Value(previousDay.Format("2006-01-02"))),
+			expression.Key("Timestamp").GreaterThan(expression.Value(previousDay.Format("03:04:05"))),
+		)
+		keyCondList := []expression.KeyConditionBuilder{prevKeyCond, keyCond}
 
-		subscriptionData, err := svc.Query(newDataQuery)
-		if err != nil {
-			log.Printf("dynamodb querying error: %s", err)
-			return err
-		}
+		for _, condition := range keyCondList {
+			newDataQuery, err := initialSubscriptionData(msg.Data, connectionId, condition)
+			if err != nil {
+				return err
+			}
 
-		if err = broadcastSubscribedData(connectionId, event, subscriptionData, sess, msg.Data); err != nil {
-			return err
+			subscriptionData, err := svc.Query(newDataQuery)
+			if err != nil {
+				log.Printf("dynamodb querying error: %s", err)
+				return err
+			}
+
+			if err = broadcastSubscribedData(connectionId, event, subscriptionData, sess, msg.Data); err != nil {
+				return err
+			}
 		}
 	}
 
 	return nil
 }
 
-func initialSubscriptionData(symbol string, connectionId string, dayCount int) (*dynamodb.QueryInput, error) {
-	currentDate := time.Now().Format("2006-01-02")
-	log.Println(symbol)
-	keyCond := expression.Key("Date").Equal(expression.Value(currentDate))
+func initialSubscriptionData(symbol string, connectionId string, key expression.KeyConditionBuilder) (*dynamodb.QueryInput, error) {
 	proj := expression.NamesList(expression.Name(symbol), expression.Name("Date"), expression.Name("Timestamp"))
 	expr, err := expression.NewBuilder().
-		WithKeyCondition(keyCond).
+		WithKeyCondition(key).
 		WithProjection(proj).
 		Build()
 	if err != nil {
@@ -123,28 +127,14 @@ func broadcastSubscribedData(connectionId string, event events.APIGatewayWebsock
 	apigw := apigatewaymanagementapi.New(sess, aws.NewConfig().WithEndpoint(endpointUrl))
 
 	websocketMessage := map[string][]CallbackMessageData{}
-	switch symbol {
-	case "EURUSD":
-		rateList := make([]dynamodbEurUsd, *symbolRate.Count)
-		err := dynamodbattribute.UnmarshalListOfMaps(symbolRate.Items, &rateList)
-		if err != nil {
-			log.Println("Could not unmarshal", err)
-			return errors.New("json unmarshalling error")
-		}
-		log.Println(rateList)
-		websocketMessage[symbol] = *createCallbackMessageEurUsd(&rateList)
-	case "GBPUSD":
-		rateList := make([]dynamodbGbpUsd, *symbolRate.Count)
-		err := dynamodbattribute.UnmarshalListOfMaps(symbolRate.Items, &rateList)
-		if err != nil {
-			log.Println("Could not unmarshal", err)
-			return errors.New("json unmarshalling error")
-		}
-		log.Println(rateList)
-		websocketMessage[symbol] = *createCallbackMessageGbpUsd(&rateList)
-	default:
-		return errors.New("invalid symbol")
+	rateList := make([]ExchangeRateTable, *symbolRate.Count)
+	err := dynamodbattribute.UnmarshalListOfMaps(symbolRate.Items, &rateList)
+	if err != nil {
+		log.Println("Could not unmarshal", err)
+		return errors.New("json unmarshalling error")
 	}
+	log.Println(rateList)
+	websocketMessage[symbol] = *createCallbackMessage(&rateList, symbol)
 
 	byteMessage, err := json.Marshal(websocketMessage)
 	if err != nil {
@@ -160,16 +150,18 @@ func broadcastSubscribedData(connectionId string, event events.APIGatewayWebsock
 	return nil
 }
 
-func createCallbackMessageEurUsd(symbolRate *[]dynamodbEurUsd) *[]CallbackMessageData {
+func createCallbackMessage(symbolRate *[]ExchangeRateTable, symbol string) *[]CallbackMessageData {
 	var newCallbackMessageData []CallbackMessageData
 	for _, rate := range *symbolRate {
-		if checkIsRateValidEurUsd(&rate) {
+		symbolField := getSymbolStructField(symbol, &rate)
+		if checkIsRateValid(symbolField) {
 			newData := CallbackMessageData{
 				Timestamp: rate.Date + " " + rate.Timestamp,
-				Open:      rate.EURUSD.Open,
-				High:      rate.EURUSD.High,
-				Low:       rate.EURUSD.Low,
-				Close:     rate.EURUSD.Close,
+				Open:      symbolField.Open,
+				High:      symbolField.High,
+				Low:       symbolField.Low,
+				Close:     symbolField.Close,
+				Volume:    symbolField.Volume,
 			}
 			newCallbackMessageData = append(newCallbackMessageData, newData)
 		}
@@ -177,38 +169,22 @@ func createCallbackMessageEurUsd(symbolRate *[]dynamodbEurUsd) *[]CallbackMessag
 	return &newCallbackMessageData
 }
 
-func createCallbackMessageGbpUsd(symbolRate *[]dynamodbGbpUsd) *[]CallbackMessageData {
-	var newCallbackMessageData []CallbackMessageData
-	for _, rate := range *symbolRate {
-		if checkIsRateValidGbpUsd(&rate) {
-			newData := CallbackMessageData{
-				Timestamp: rate.Date + " " + rate.Timestamp,
-				Open:      rate.GBPUSD.Open,
-				High:      rate.GBPUSD.High,
-				Low:       rate.GBPUSD.Low,
-				Close:     rate.GBPUSD.Close,
-			}
-			newCallbackMessageData = append(newCallbackMessageData, newData)
-		}
+func getSymbolStructField(symbol string, symbolRate *ExchangeRateTable) *exchangeRate {
+	switch symbol {
+	case "EURUSD":
+		return &symbolRate.EURUSD
+	case "GBPUSD":
+		return &symbolRate.GBPUSD
+	default:
+		return nil
 	}
-	return &newCallbackMessageData
 }
 
-func checkIsRateValidEurUsd(rate *dynamodbEurUsd) bool {
-	if rate.EURUSD.Open == 0 ||
-		rate.EURUSD.High == 0 ||
-		rate.EURUSD.Low == 0 ||
-		rate.EURUSD.Close == 0 {
-		return false
-	}
-	return true
-}
-
-func checkIsRateValidGbpUsd(rate *dynamodbGbpUsd) bool {
-	if rate.GBPUSD.Open == 0 ||
-		rate.GBPUSD.High == 0 ||
-		rate.GBPUSD.Low == 0 ||
-		rate.GBPUSD.Close == 0 {
+func checkIsRateValid(rate *exchangeRate) bool {
+	if rate.Open == 0 ||
+		rate.High == 0 ||
+		rate.Low == 0 ||
+		rate.Close == 0 {
 		return false
 	}
 	return true

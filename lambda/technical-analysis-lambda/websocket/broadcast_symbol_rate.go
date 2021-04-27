@@ -51,54 +51,39 @@ func BroadcastSymbolRate(connectionList *[]dynamosymbol.Connection, symbolRate *
 func createCallbackMessage(symbolRate *[]dynamosymbol.SymbolRateItem, symbol string) (*[]CallbackMessageData, error) {
 	var newCallbackMessageData []CallbackMessageData
 	for _, rate := range *symbolRate {
-		if !checkIsRateValid(&rate, symbol) {
-			log.Printf("No data for symbol %s", symbol)
-			continue
-		}
-		switch symbol {
-		case "EURUSD":
+		symbolField := getSymbolRateField(symbol, &rate)
+		if checkIsRateValid(symbolField, symbol) {
 			newData := CallbackMessageData{
 				Timestamp: rate.Date + " " + rate.Timestamp,
-				Open:      rate.EURUSD.Open,
-				High:      rate.EURUSD.High,
-				Low:       rate.EURUSD.Low,
-				Close:     rate.EURUSD.Close,
-				Volume:    rate.EURUSD.Volume,
+				Open:      symbolField.Open,
+				High:      symbolField.High,
+				Low:       symbolField.Low,
+				Close:     symbolField.Close,
+				Volume:    symbolField.Volume,
 			}
 			newCallbackMessageData = append(newCallbackMessageData, newData)
-		case "GBPUSD":
-			newData := CallbackMessageData{
-				Timestamp: rate.Date + " " + rate.Timestamp,
-				Open:      rate.GBPUSD.Open,
-				High:      rate.GBPUSD.High,
-				Low:       rate.GBPUSD.Low,
-				Close:     rate.GBPUSD.Close,
-				Volume:    rate.GBPUSD.Volume,
-			}
-			newCallbackMessageData = append(newCallbackMessageData, newData)
-		default:
-			return nil, errors.New("unknown symbol")
 		}
 	}
 	return &newCallbackMessageData, nil
 }
 
-func checkIsRateValid(symbolRate *dynamosymbol.SymbolRateItem, symbol string) bool {
-	switch symbol {
-	case "EURUSD":
-		if symbolRate.EURUSD.Open == 0 ||
-			symbolRate.EURUSD.High == 0 ||
-			symbolRate.EURUSD.Low == 0 ||
-			symbolRate.EURUSD.Close == 0 {
-			return false
-		}
-	case "GBPUSD":
-		if symbolRate.GBPUSD.Open == 0 ||
-			symbolRate.GBPUSD.High == 0 ||
-			symbolRate.GBPUSD.Low == 0 ||
-			symbolRate.GBPUSD.Close == 0 {
-			return false
-		}
+func checkIsRateValid(symbolField *dynamosymbol.SymbolData, symbol string) bool {
+	if symbolField.Open == 0 ||
+		symbolField.High == 0 ||
+		symbolField.Low == 0 ||
+		symbolField.Close == 0 {
+		return false
 	}
 	return true
+}
+
+func getSymbolRateField(symbol string, symbolRate *dynamosymbol.SymbolRateItem) *dynamosymbol.SymbolData {
+	switch symbol {
+	case "EURUSD":
+		return &symbolRate.EURUSD
+	case "GBPUSD":
+		return &symbolRate.GBPUSD
+	default:
+		return nil
+	}
 }
