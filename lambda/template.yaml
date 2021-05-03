@@ -2,15 +2,22 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Forex Data Streaming Template
 
-# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
-    Timeout: 10
+    Timeout: 300
 
 Parameters:
   ProjectApiKey:
     Type: String
     Description: Finnhub API Key
+  TwitterConsumerKey:
+    Type: String
+  TwitterConsumerSecret:
+    Type: String
+  TwitterAccessTokenKey:
+    Type: String
+  TwitterAccessTokenSecret:
+    Type: String
 
 Resources:
     ForexDataWebsocket:
@@ -160,7 +167,7 @@ Resources:
         DockerTag: go1.x-v1
         DockerContext: ./technical-analysis-lambda
         Dockerfile: Dockerfile
-    
+
     WebsocketMessageFunction:
       Type: AWS::Serverless::Function
       Properties:
@@ -190,6 +197,33 @@ Resources:
         FunctionName: !Ref WebsocketMessageFunction
         Principal: apigateway.amazonaws.com
 
+    PredictionFunction:
+      Type: AWS::Serverless::Function
+      Properties:
+        MemorySize: 512
+        PackageType: Image
+        FunctionName: PredictionFunction
+        Environment:
+            Variables:
+              TWITTER_CONSUMER_KEY: !Ref TwitterConsumerKey
+              TWITTER_CONSUMER_SECRET: !Ref TwitterConsumerSecret
+              TWITTER_ACCESS_TOKEN_KEY: !Ref TwitterAccessTokenKey
+              TWITTER_ACCESS_TOKEN_SECRET: !Ref TwitterAccessTokenSecret
+        Policies:
+          - AWSLambdaDynamoDBExecutionRole
+          - DynamoDBCrudPolicy:
+              TableName: !Ref TechnicalAnalysisTable
+        Events:
+          Stream:
+            Type: DynamoDB
+            Properties:
+              Stream: !GetAtt SymbolRateTable.StreamArn
+              StartingPosition: LATEST
+      Metadata:
+        DockerTag: python3.8
+        DockerContext: ./prediction-lambda
+        Dockerfile: Dockerfile
+
     SymbolRateTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -207,7 +241,9 @@ Resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 5
           WriteCapacityUnits: 5
-    
+        StreamSpecification:
+          StreamViewType: NEW_IMAGE
+
     WebsocketConnectionsTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -221,6 +257,24 @@ Resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 5
           WriteCapacityUnits: 5
+    
+    TechnicalAnalysisTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: TechnicalAnalysisTable
+        AttributeDefinitions:
+          - AttributeName: Date
+            AttributeType: S
+          - AttributeName: Timestamp
+            AttributeType: S
+        KeySchema:
+          - AttributeName: Date
+            KeyType: HASH
+          - AttributeName: Timestamp
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5  
 
 Outputs:
   WebSocketURI:

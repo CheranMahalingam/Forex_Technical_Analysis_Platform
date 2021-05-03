@@ -69,7 +69,7 @@ func HandleSubscription(connectionId string, event events.APIGatewayWebsocketPro
 
 	if subscribe {
 		currentDate := time.Now()
-		previousDay := currentDate.Add(-time.Hour * 48)
+		previousDay := currentDate.Add(-time.Hour * 96)
 		log.Println(currentDate)
 		log.Println(previousDay)
 		keyCond := expression.Key("Date").Equal(expression.Value(currentDate.Format("2006-01-02")))
