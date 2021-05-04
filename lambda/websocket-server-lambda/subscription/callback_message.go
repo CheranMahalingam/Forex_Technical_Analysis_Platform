@@ -8,3 +8,8 @@ type CallbackMessageData struct {
 	Close     float32 `json:"close"`
 	Volume    float32 `json:"volume"`
 }
+
+type CallbackMessageInference struct {
+	Inference []float32 `json:"inference"`
+	Date      string    `json:"date"`
+}

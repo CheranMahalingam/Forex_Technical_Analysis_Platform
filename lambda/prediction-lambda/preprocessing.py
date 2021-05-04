@@ -24,11 +24,8 @@ def preprocess(analysis_df):
 
     for currency in CURRENCIES:
         processed_df[currency] = average_tweet_sentiment(analysis_df, currency, 60)
-        print(processed_df[currency])
-    
-    processed_df = compress_dataframe_time_interval(processed_df, 15)
 
-    print(processed_df)
+    processed_df = compress_dataframe_time_interval(processed_df, 15)
     return processed_df
 
 
@@ -44,6 +41,7 @@ def stationary_log_returns(analysis_df, column):
         Dataframe with column substituted with log returns
     """
     analysis_df[column] = np.log(analysis_df[column] / analysis_df[column].shift(1))
+    analysis_df[column] = analysis_df[column].fillna(method="bfill")
     return analysis_df[column]
 
 
@@ -66,17 +64,19 @@ def calculate_rsi(analysis_df, column, window):
     up_periods[delta<=0] = 0.0
     down_periods = abs(delta.copy())
     down_periods[delta>0] = 0.0
-    rs_up = up_periods.rolling(window).mean()
-    rs_down = down_periods.rolling(window).mean()
+    rs_up = up_periods.rolling(window, min_periods=1).mean()
+    rs_down = down_periods.rolling(window, min_periods=1).mean()
     rsi = 100 - 100/(1+rs_up/rs_down)
+    rsi = rsi.fillna(method="bfill")
     return rsi
 
 
 def average_tweet_sentiment(analysis_df, column, window):
-    return analysis_df[column].rolling(window, min_periods=1).mean()
+    average_sentiment = analysis_df[column].rolling(window, min_periods=1).mean()
+    average_sentiment = average_sentiment.replace(np.nan).fillna(0)
+    return average_sentiment
 
 
 def compress_dataframe_time_interval(processed_df, interval):
     cool = processed_df.resample('{}min'.format(interval), on='Time').mean()
-    print(cool)
     return cool

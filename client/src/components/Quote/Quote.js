@@ -14,7 +14,6 @@ import {
 import {
   mouseBasedZoomAnchor,
   Label,
-  last,
   CrossHairCursor,
 } from "react-financial-charts";
 import Rsi from "../Technical_Indicators/Rsi";
@@ -126,7 +125,6 @@ function Quote(props) {
       >
         <Button
           variant="outlined"
-          color="primary"
           style={{
             position: "relative",
             left: (5 * width) / 6,
@@ -140,6 +138,21 @@ function Quote(props) {
           size="small"
         >
           Indicators
+        </Button>
+        <Button
+          variant="outlined"
+          style={{
+            position: "relative",
+            left: (2 * width) / 3,
+            top: margin.top,
+            zIndex: 7,
+            color: "#FFFFFF",
+            borderColor: "#FFFFFF",
+          }}
+          onClick={() => props.handleInferenceSubscribe(props.pair)}
+          size="small"
+        >
+          Forecast
         </Button>
         <SelectIndicatorModal
           openIndicators={openIndicators}
@@ -172,7 +185,7 @@ function Quote(props) {
           <Chart
             id={1}
             yExtents={
-              ((d) => [d.high, d.low],
+              ((d) => [d.high, d.low, d.inference],
               ema12.accessor(),
               ema26.accessor(),
               bollingerCalculator.accessor())
@@ -188,6 +201,8 @@ function Quote(props) {
                 Math.max(...props.indicatorHeight) === props.indicatorHeight[0]
               }
               moveRight={(3 * width) / 13}
+              inferenceData={props.inferenceData}
+              isSubsribedToInference={props.isSubsribedToInference}
             />
           </Chart>
           {props.selectedIndicators.includes("MACD") ? (

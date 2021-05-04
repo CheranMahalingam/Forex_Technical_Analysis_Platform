@@ -17,7 +17,7 @@ def get_technical_analysis_data(date, timestamp):
     previous_date = datetime.datetime.strftime(previous_date, "%Y-%m-%d")
     response_past = table.query(
         KeyConditionExpression=
-            Key('Date').eq(previous_date) & Key('Timestamp').gt(timestamp)
+            Key('Date').eq(previous_date) & Key('Timestamp').gte(timestamp)
     )
 
     present_df = convert_to_dataframe(response_present['Items'])
@@ -30,9 +30,7 @@ def get_technical_analysis_data(date, timestamp):
     elif previous_df.empty:
         return present_df
     else:
-        #new_df = previous_df.merge(present_df, how="outer")
         new_df = pd.concat([previous_df, present_df], ignore_index=True)
-        print(new_df)
         return new_df
 
 

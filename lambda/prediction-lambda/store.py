@@ -1,7 +1,6 @@
 import boto3
 from decimal import Decimal
 
-
 DB_ANALYSIS_COLUMNS = [
     "EURUSD",
     "GBPUSD",
@@ -12,6 +11,7 @@ DB_ANALYSIS_COLUMNS = [
     "EURUSDAccumulationDistribution",
     "GBPUSDAccumulationDistribution"
 ]
+
 
 def store_indicator_data(date, timestamp, analysis, sentiment):
     dynamodb = boto3.resource('dynamodb')

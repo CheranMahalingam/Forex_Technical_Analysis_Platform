@@ -3,10 +3,10 @@ import TextField from "@material-ui/core/TextField";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import Chip from "@material-ui/core/Chip";
 import { makeStyles } from "@material-ui/core/styles";
-import { parseISO } from "date-fns";
 import Quote from "../Quote/Quote";
 import { findMissingElement } from "../../utils/arrayUtils";
 import { removeProperty } from "../../utils/parseObjectUtils";
+import { parseNewInferenceData, parseNewSymbolData } from "../../utils/websocketMessage";
 
 var socket;
 
@@ -50,6 +50,24 @@ function QuoteSelector() {
     USDCHF: [],
     NZDJPY: [],
   });
+  const [subscribeInference, setSubscribeInference] = useState({
+    EURUSD: false,
+    GBPUSD: false,
+    USDCAD: false,
+    USDJPY: false,
+    AUDUSD: false,
+    USDCHF: false,
+    NZDJPY: false,
+  });
+  const [inferenceData, setInferenceData] = useState({
+    EURUSD: [],
+    GBPUSD: [],
+    USDCAD: [],
+    USDJPY: [],
+    AUDUSD: [],
+    USDCHF: [],
+    NZDJPY: [],
+  });
   const [quoteHeight, setQuoteHeight] = useState({});
   const [selectedIndicators, setSelectedIndicators] = useState({});
   const [indicatorHeight, setIndicatorHeight] = useState({});
@@ -66,20 +84,14 @@ function QuoteSelector() {
   const chartSpacingHeight = 120;
 
   const pushNewData = (newData) => {
-    console.log(newData);
     let parsedData = JSON.parse(newData);
     const symbol = Object.keys(parsedData)[0];
-    let newPairData = parsedData[symbol];
-    if (!newPairData) {
-      return data
+    console.log(parsedData)
+    if (parsedData[symbol].hasOwnProperty("inference")) {
+      setInferenceData({...inferenceData, [symbol]: parseNewInferenceData(parsedData, inferenceData)});
+    } else {
+      setData(parseNewSymbolData(parsedData, data));
     }
-    for (let i = 0; i < newPairData.length; i++) {
-      newPairData[i].timestamp = parseISO(newPairData[i].timestamp);
-    }
-    let copyObj = { ...data };
-    copyObj[symbol].push(...newPairData);
-    console.log(copyObj);
-    return copyObj;
   };
 
   useEffect(() => {
@@ -95,7 +107,7 @@ function QuoteSelector() {
 
     socket.onmessage = (evt) => {
       console.log("onmessage");
-      setData(pushNewData(evt.data));
+      pushNewData(evt.data);
     };
 
     socket.onerror = (err) => {
@@ -159,7 +171,7 @@ function QuoteSelector() {
         })
       );
       setData((data) => {
-        let unsubscribedData = {...data};
+        let unsubscribedData = { ...data };
         unsubscribedData[unsubscribedSymbol].length = 0;
         return unsubscribedData;
       });
@@ -240,6 +252,28 @@ function QuoteSelector() {
     }
   };
 
+  const handleInferenceSubscribe = (symbol) => {
+    console.log(symbol);
+    const colName = symbol + "Inference";
+    const subscribe = !subscribeInference[symbol];
+    if (subscribe) {
+      socket.send(
+        JSON.stringify({
+          message: "subscribe",
+          data: colName,
+        })
+      );
+    } else {
+      socket.send(
+        JSON.stringify({
+          message: "unsubscribe",
+          data: colName,
+        })
+      );
+    }
+    setSubscribeInference({ ...subscribeInference, [symbol]: subscribe });
+  };
+
   return (
     <React.Fragment>
       <Autocomplete
@@ -279,7 +313,7 @@ function QuoteSelector() {
           return (
             <Quote
               key={index}
-              data={data[pair]}
+              data={[...data[pair], ...inferenceData[pair]]}
               pair={pair}
               quoteHeight={quoteHeight}
               handleQuoteHeight={handleQuoteHeight}
@@ -289,6 +323,9 @@ function QuoteSelector() {
               macdHeight={macdHeight}
               rsiHeight={rsiHeight}
               stoHeight={stoHeight}
+              handleInferenceSubscribe={handleInferenceSubscribe}
+              inferenceData={inferenceData}
+              isSubscribedToInference={subscribeInference[pair]}
             />
           );
         })}

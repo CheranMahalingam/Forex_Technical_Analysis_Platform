@@ -27,7 +27,6 @@ def generate_twitter_sentiment(end_time_key):
     tweets = get_twitter_data(formatted_start, formatted_end)
     sentiment = tweet_sentiment(tweets)
     sentiment = currency_sentiment(sentiment)
-    print(sentiment, "CURRENCY SENTIMENT")
     return sentiment
 
 

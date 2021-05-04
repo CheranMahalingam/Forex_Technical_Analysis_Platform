@@ -178,6 +178,8 @@ Resources:
               TableName: !Ref SymbolRateTable
           - DynamoDBCrudPolicy:
               TableName: !Ref WebsocketConnectionsTable
+          - DynamoDBCrudPolicy:
+              TableName: !Ref TechnicalAnalysisTable
           - Statement:
             - Effect: Allow
               Action:
@@ -200,11 +202,12 @@ Resources:
     PredictionFunction:
       Type: AWS::Serverless::Function
       Properties:
-        MemorySize: 512
+        MemorySize: 1024
         PackageType: Image
         FunctionName: PredictionFunction
         Environment:
             Variables:
+              ApiGatewayUri: !Sub 'https://${ForexDataWebsocket}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/'
               TWITTER_CONSUMER_KEY: !Ref TwitterConsumerKey
               TWITTER_CONSUMER_SECRET: !Ref TwitterConsumerSecret
               TWITTER_ACCESS_TOKEN_KEY: !Ref TwitterAccessTokenKey
@@ -213,6 +216,14 @@ Resources:
           - AWSLambdaDynamoDBExecutionRole
           - DynamoDBCrudPolicy:
               TableName: !Ref TechnicalAnalysisTable
+          - DynamoDBCrudPolicy:
+              TableName: !Ref WebsocketConnectionsTable
+          - Statement:
+            - Effect: Allow
+              Action:
+                - 'execute-api:ManageConnections'
+              Resource:
+                - !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ForexDataWebsocket}/*'
         Events:
           Stream:
             Type: DynamoDB

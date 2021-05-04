@@ -12,6 +12,7 @@ import {
 } from "react-financial-charts";
 import BollingerBand from "../Technical_Indicators/Bollinger_Band";
 import Ema from "../Technical_Indicators/Ema";
+import Inference from "../Inference/Inference";
 
 function ExchangeRate(props) {
   const pricesDisplayFormat = format(".5f");
@@ -48,6 +49,7 @@ function ExchangeRate(props) {
         <Ema ema={props.ema} />
       ) : null}
       <CandlestickSeries {...candlesAppearance} />
+      {props.isSubscribedToInference ? <Inference yAccessor={(d) => d.inference}/> : null}
       <OHLCTooltip
         origin={[props.moveRight, 0]}
         labelFill="#FFFFFF"

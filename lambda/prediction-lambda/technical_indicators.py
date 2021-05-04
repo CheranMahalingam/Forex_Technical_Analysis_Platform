@@ -1,7 +1,6 @@
 import boto3
 from boto3.dynamodb.conditions import Key
 import datetime
-from decimal import Decimal
 
 SYMBOLS = ["EURUSD", "GBPUSD"]
 
@@ -29,7 +28,6 @@ def generate_technical_indicators(new_ohlc_data):
         indicator_data[symbol + 'Ema10'] = calculate_ema(close_price, 10, previous_ema_10)
         indicator_data[symbol  + 'Ema50'] = calculate_ema(close_price, 50, previous_ema_50)
         indicator_data[symbol] = close_price
-    print(indicator_data)
     return indicator_data
 
 

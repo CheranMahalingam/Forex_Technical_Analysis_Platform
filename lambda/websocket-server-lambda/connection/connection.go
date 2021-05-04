@@ -1,11 +1,19 @@
 package connection
 
 type Connection struct {
-	ConnectionId string
-	EURUSD       bool
-	GBPUSD       bool
+	ConnectionId    string
+	EURUSD          bool
+	GBPUSD          bool
+	EURUSDInference bool
+	GBPUSDInference bool
 }
 
 func CreateNewConnection(connectionId string) *Connection {
-	return &Connection{ConnectionId: connectionId, EURUSD: false, GBPUSD: false}
+	return &Connection{
+		ConnectionId:    connectionId,
+		EURUSD:          false,
+		GBPUSD:          false,
+		EURUSDInference: false,
+		GBPUSDInference: false,
+	}
 }
