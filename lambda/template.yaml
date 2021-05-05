@@ -145,13 +145,21 @@ Resources:
         FunctionName: SymbolDataFunction
         Environment:
             Variables:
-              ProjectApiKey: !Ref ProjectApiKey
-              ApiGatewayUri: !Sub 'https://${ForexDataWebsocket}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/'
+              PROJECT_API_KEY: !Ref ProjectApiKey
+              API_GATEWAY_URI: !Sub 'https://${ForexDataWebsocket}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/'
         Events:
-          ScheduledFinnhubCall:
+          ScheduledFinnhubCall1:
             Type: Schedule
             Properties:
-              Schedule: rate(2 minutes)
+              Schedule: cron(0/2 17-23 ? * SUN *)
+          ScheduledFinnhubCall2:
+            Type: Schedule
+            Properties:
+              Schedule: cron(0/2 * ? * MON-THU *)  #rate(2 minutes)
+          ScheduledFinnhubCall3:
+            Type: Schedule
+            Properties:
+              Schedule: cron(0/2 0-17 ? * FRI *)
         Policies:
           - DynamoDBCrudPolicy:
               TableName: !Ref SymbolRateTable
@@ -207,7 +215,7 @@ Resources:
         FunctionName: PredictionFunction
         Environment:
             Variables:
-              ApiGatewayUri: !Sub 'https://${ForexDataWebsocket}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/'
+              API_GATEWAY_URI: !Sub 'https://${ForexDataWebsocket}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/'
               TWITTER_CONSUMER_KEY: !Ref TwitterConsumerKey
               TWITTER_CONSUMER_SECRET: !Ref TwitterConsumerSecret
               TWITTER_ACCESS_TOKEN_KEY: !Ref TwitterAccessTokenKey

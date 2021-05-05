@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import Button from "@material-ui/core/Button";
 import AddIcon from "@material-ui/icons/Add";
+import TimelineIcon from "@material-ui/icons/Timeline";
+import RemoveIcon from "@material-ui/icons/Remove";
 import { Chart, ChartCanvas } from "@react-financial-charts/core";
 import { discontinuousTimeScaleProviderBuilder } from "@react-financial-charts/scales";
 import { withDeviceRatio, withSize } from "@react-financial-charts/utils";
@@ -87,7 +89,7 @@ function Quote(props) {
     calculatedData
   );
   const max = xAccessor(data[data.length - 1]);
-  const min = xAccessor(data.length > 200 ? data[data.length - 200] : data[0]);
+  const min = xAccessor(data.length > 100 ? data[data.length - 100] : data[0]);
   const xExtents = [min, max + 1];
   const margin = { left: 20, right: 80, top: 50, bottom: 30 };
   const pairLabel =
@@ -143,16 +145,19 @@ function Quote(props) {
           variant="outlined"
           style={{
             position: "relative",
-            left: (2 * width) / 3,
+            left: ((5 * width) / 6) - 300,
             top: margin.top,
             zIndex: 7,
             color: "#FFFFFF",
             borderColor: "#FFFFFF",
           }}
           onClick={() => props.handleInferenceSubscribe(props.pair)}
+          startIcon={
+            props.isSubscribedToInference ? <RemoveIcon /> : <TimelineIcon />
+          }
           size="small"
         >
-          Forecast
+          View Forecast
         </Button>
         <SelectIndicatorModal
           openIndicators={openIndicators}
@@ -185,7 +190,8 @@ function Quote(props) {
           <Chart
             id={1}
             yExtents={
-              ((d) => [d.high, d.low, d.inference],
+              ((d) => [d.high + 0.005, d.low - 0.005],
+              (d) => [d.inference + 0.005, d.inference - 0.005],
               ema12.accessor(),
               ema26.accessor(),
               bollingerCalculator.accessor())
@@ -201,8 +207,7 @@ function Quote(props) {
                 Math.max(...props.indicatorHeight) === props.indicatorHeight[0]
               }
               moveRight={(3 * width) / 13}
-              inferenceData={props.inferenceData}
-              isSubsribedToInference={props.isSubsribedToInference}
+              isSubscribedToInference={props.isSubscribedToInference}
             />
           </Chart>
           {props.selectedIndicators.includes("MACD") ? (
@@ -284,6 +289,6 @@ const indicators = [
   "MACD",
 ];
 
-export default withSize({ style: { minHeight: 750 } })(
+export default withSize({ style: { minHeight: 800 } })(
   withDeviceRatio()(Quote)
 );

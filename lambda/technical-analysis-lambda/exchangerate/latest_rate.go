@@ -15,7 +15,7 @@ import (
 func CreateNewSymbolRate(symbols *[2]string, startSeconds int64, endSeconds int64, period string) (*[]dynamosymbol.SymbolRateItem, error) {
 	finnhubClient := finnhub.NewAPIClient(finnhub.NewConfiguration()).DefaultApi
 	auth := context.WithValue(context.Background(), finnhub.ContextAPIKey, finnhub.APIKey{
-		Key: os.Getenv("ProjectApiKey"),
+		Key: os.Getenv("PROJECT_API_KEY"),
 	})
 	symbolRateItems := []dynamosymbol.SymbolRateItem{}
 	for _, symbol := range *symbols {

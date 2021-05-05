@@ -15,17 +15,48 @@ export const parseNewSymbolData = (parsedData, chartData) => {
   return copyObj;
 };
 
-export const parseNewInferenceData = (parsedData, pastInferenceData) => {
-    const symbol = Object.keys(parsedData)[0];
-    let newInferenceData = [];
-    if (!parsedData[symbol].inference) {
-        return pastInferenceData;
+export const parseNewInferenceData = (
+  parsedData,
+  pastInferenceData,
+  previous
+) => {
+  const symbol = Object.keys(parsedData)[0];
+  let newInferenceData = [];
+  if (!parsedData[symbol].inference) {
+    return pastInferenceData;
+  }
+  const date = new Date();
+  let slope = calculate_slope(parsedData[symbol].inference[0], previous, 15);
+  for (let i = 0; i < parsedData[symbol].inference.length * 15; i++) {
+    const index = Math.floor(i / 15);
+    if (i % 15 === 0 && i !== 0) {
+      slope = calculate_slope(
+        parsedData[symbol].inference[index],
+        parsedData[symbol].inference[index - 1],
+        15
+      );
     }
-    const date = new Date();
-    for (let i = 0; i < parsedData[symbol].inference.length; i++) {
-        let newDate = new Date();
-        newDate.setMinutes(date.getMinutes() + 15*(i + 1));
-        newInferenceData.push({timestamp: newDate, inference: parsedData[symbol].inference[i]});
+    const slopeSum = (i % 15) * slope;
+    let newDate = new Date();
+    newDate.setMinutes(date.getMinutes() + i + 1);
+    if (index === 0) {
+      newInferenceData.push({
+        timestamp: newDate,
+        inference: previous + slopeSum,
+      });
+    } else {
+      newInferenceData.push({
+        timestamp: newDate,
+        inference: parsedData[symbol].inference[index - 1] + slopeSum,
+      });
     }
-    return newInferenceData;
-}
+  }
+  return newInferenceData;
+};
+
+const calculate_slope = (y2, y1, xChange) => {
+  if (xChange === 0) {
+    return null;
+  }
+  return (y2 - y1) / xChange;
+};

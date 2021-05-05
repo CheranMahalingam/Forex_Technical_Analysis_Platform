@@ -1,7 +1,7 @@
 absl-py==0.12.0
 astunparse==1.6.3
-boto3==1.17.60
-botocore==1.20.60
+boto3==1.17.65
+botocore==1.20.65
 cachetools==4.2.2
 certifi==2020.12.5
 chardet==4.0.0
@@ -35,7 +35,6 @@ scikit-learn==0.24.1
 scipy==1.6.3
 simplejson==3.17.2
 six==1.15.0
-sklearn==0.0
 tensorboard==2.5.0
 tensorboard-data-server==0.6.0
 tensorboard-plugin-wit==1.8.0

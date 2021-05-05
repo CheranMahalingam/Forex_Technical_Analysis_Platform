@@ -2,7 +2,7 @@ import React from "react";
 import { format } from "d3-format";
 import { timeFormat } from "d3-time-format";
 import { XAxis, YAxis } from "@react-financial-charts/axes";
-import { CandlestickSeries } from "@react-financial-charts/series";
+import { CandlestickSeries} from "@react-financial-charts/series";
 import {
   MouseCoordinateY,
   MouseCoordinateX,

@@ -17,7 +17,7 @@ func BroadcastSymbolRate(connectionList *[]dynamosymbol.Connection, symbolRate *
 		SharedConfigState: session.SharedConfigEnable,
 	}))
 
-	apigw := apigatewaymanagementapi.New(sess, aws.NewConfig().WithEndpoint(os.Getenv("ApiGatewayUri")))
+	apigw := apigatewaymanagementapi.New(sess, aws.NewConfig().WithEndpoint(os.Getenv("API_GATEWAY_URI")))
 
 	newData, err := createCallbackMessage(symbolRate, symbol)
 	if err != nil {

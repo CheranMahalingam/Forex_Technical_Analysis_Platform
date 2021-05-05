@@ -6,11 +6,14 @@ import { makeStyles } from "@material-ui/core/styles";
 import Quote from "../Quote/Quote";
 import { findMissingElement } from "../../utils/arrayUtils";
 import { removeProperty } from "../../utils/parseObjectUtils";
-import { parseNewInferenceData, parseNewSymbolData } from "../../utils/websocketMessage";
+import {
+  parseNewInferenceData,
+  parseNewSymbolData,
+} from "../../utils/websocketMessage";
 
 var socket;
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     "& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline": {
       borderColor: "#FFFFFF",
@@ -39,7 +42,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-function QuoteSelector() {
+function QuoteSelector(props) {
   const [listedPairs, setListedPairs] = useState([]);
   const [data, setData] = useState({
     EURUSD: [],
@@ -86,9 +89,16 @@ function QuoteSelector() {
   const pushNewData = (newData) => {
     let parsedData = JSON.parse(newData);
     const symbol = Object.keys(parsedData)[0];
-    console.log(parsedData)
-    if (parsedData[symbol].hasOwnProperty("inference")) {
-      setInferenceData({...inferenceData, [symbol]: parseNewInferenceData(parsedData, inferenceData)});
+    console.log(parsedData);
+    if (parsedData[symbol] && parsedData[symbol].hasOwnProperty("inference")) {
+      setInferenceData({
+        ...inferenceData,
+        [symbol]: parseNewInferenceData(
+          parsedData,
+          inferenceData,
+          data[symbol][data[symbol].length - 1].close
+        ),
+      });
     } else {
       setData(parseNewSymbolData(parsedData, data));
     }
@@ -98,6 +108,7 @@ function QuoteSelector() {
     socket = new WebSocket(process.env.REACT_APP_WEBSOCKET_URI);
 
     socket.onopen = () => {
+      props.handleEndLoading();
       console.log("websocket connected");
     };
 
@@ -171,9 +182,14 @@ function QuoteSelector() {
         })
       );
       setData((data) => {
-        let unsubscribedData = { ...data };
+        let unsubscribedData = data;
         unsubscribedData[unsubscribedSymbol].length = 0;
         return unsubscribedData;
+      });
+      setInferenceData((inferenceData) => {
+        let emptyInferenceData = inferenceData;
+        emptyInferenceData[unsubscribedSymbol].length = 0;
+        return emptyInferenceData;
       });
       let newHeight = adjustHeight(
         unsubscribedSymbol,
@@ -253,7 +269,6 @@ function QuoteSelector() {
   };
 
   const handleInferenceSubscribe = (symbol) => {
-    console.log(symbol);
     const colName = symbol + "Inference";
     const subscribe = !subscribeInference[symbol];
     if (subscribe) {
@@ -270,6 +285,13 @@ function QuoteSelector() {
           data: colName,
         })
       );
+    }
+    if (!subscribe) {
+      setInferenceData((inferenceData) => {
+        let emptyInferenceData = inferenceData;
+        emptyInferenceData[symbol].length = 0;
+        return emptyInferenceData;
+      });
     }
     setSubscribeInference({ ...subscribeInference, [symbol]: subscribe });
   };
@@ -324,7 +346,6 @@ function QuoteSelector() {
               rsiHeight={rsiHeight}
               stoHeight={stoHeight}
               handleInferenceSubscribe={handleInferenceSubscribe}
-              inferenceData={inferenceData}
               isSubscribedToInference={subscribeInference[pair]}
             />
           );

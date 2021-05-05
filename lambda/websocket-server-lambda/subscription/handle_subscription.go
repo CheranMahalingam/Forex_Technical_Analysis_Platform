@@ -33,7 +33,7 @@ type ExchangeRateTable struct {
 }
 
 type Inference struct {
-	Timestamp       string
+	Latest          string
 	EURUSDInference []float32
 	GBPUSDInference []float32
 }
@@ -75,7 +75,7 @@ func HandleSubscription(connectionId string, event events.APIGatewayWebsocketPro
 
 	log.Println(msg.Data)
 	if subscribe && permissionToGetRates(msg.Data) {
-		currentDate := time.Now().Add(-time.Hour * 96)
+		currentDate := time.Now().Add(-time.Hour * 0)
 		previousDay := currentDate.Add(-time.Hour * 24)
 		log.Println(currentDate)
 		log.Println(previousDay)
@@ -148,7 +148,7 @@ func initialSubscriptionData(symbol string, connectionId string, key expression.
 
 func initialInferenceData(symbol string) (*dynamodb.QueryInput, error) {
 	colName := symbol + "Inference"
-	proj := expression.NamesList(expression.Name(colName), expression.Name("Timestamp"))
+	proj := expression.NamesList(expression.Name(colName), expression.Name("Time"))
 	keyCond := expression.Key("Date").Equal(expression.Value("inference"))
 	expr, err := expression.NewBuilder().
 		WithKeyCondition(keyCond).
@@ -250,7 +250,7 @@ func createCallbackInferenceMessage(inferenceList *[]Inference, symbol string) *
 	inferenceField := getInferenceStructField(symbol, (*inferenceList)[0])
 	return &CallbackMessageInference{
 		Inference: *inferenceField,
-		Date:      (*inferenceList)[0].Timestamp,
+		Date:      (*inferenceList)[0].Latest,
 	}
 }
 

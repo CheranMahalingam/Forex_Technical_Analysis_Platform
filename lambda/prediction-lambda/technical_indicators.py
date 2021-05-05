@@ -47,7 +47,7 @@ def get_previous_ema(close, symbol, interval):
 
     column_name = symbol + "Ema" + str(interval)
 
-    current_date = datetime.datetime.now() - datetime.timedelta(days=4)
+    current_date = datetime.datetime.now()
     formatted_date = current_date.strftime("%Y-%m-%d")
 
     response = table.query(

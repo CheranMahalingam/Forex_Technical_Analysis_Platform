@@ -14,7 +14,7 @@ import (
 var currencyPairs = [2]string{"EURUSD", "GBPUSD"}
 
 func handler(request events.CloudWatchEvent) (events.CloudWatchEvent, error) {
-	newRate, err := exchangerate.CreateNewSymbolRate(&currencyPairs, 120+4*24*60*60, 0+4*24*60*60, "1")
+	newRate, err := exchangerate.CreateNewSymbolRate(&currencyPairs, 120, 0, "1")
 	if err != nil {
 		log.Println(err)
 		return events.CloudWatchEvent{}, err

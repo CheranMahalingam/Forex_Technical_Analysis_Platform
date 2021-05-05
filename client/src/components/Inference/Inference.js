@@ -1,5 +1,5 @@
 import React from "react";
-import { LineSeries, LineSeriesProps } from "@react-financial-charts/series";
+import { LineSeries} from "@react-financial-charts/series";
 
 function Inference(props) {
   return (
@@ -7,7 +7,6 @@ function Inference(props) {
       <LineSeries
         yAccessor={props.yAccessor}
         strokeStyle="#FFFFFF"
-        connectNulls={true}
       />
     </React.Fragment>
   );

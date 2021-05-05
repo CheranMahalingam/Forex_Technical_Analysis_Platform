@@ -25,17 +25,13 @@ def scan_connections(symbol):
 
 def broadcast_inference(symbol, connections, inference, date):
     apig_management_client = boto3.client(
-        'apigatewaymanagementapi', endpoint_url=os.getenv("ApiGatewayUri")
+        'apigatewaymanagementapi', endpoint_url=os.getenv("API_GATEWAY_URI")
     )
 
     current_date = datetime.datetime.strptime(date, "%Y-%m-%d%H:%M:%S")
+    current_date = datetime.datetime.strftime(current_date, "%Y-%m-%d %H:%M:%S")
     inference = inference.tolist()
-    dates = []
-    for i in range(len(inference)):
-        date = current_date + datetime.timedelta(minutes=15*(i+1))
-        str_time = datetime.datetime.strftime(date, "%Y-%m-%d %H:%M:%S")
-        dates.append(str_time)
-    data = {symbol: {"inference": inference, "date": dates}}
+    data = {symbol: {"inference": inference, "date": current_date}}
 
     for conn_id in connections:
         try:
@@ -59,12 +55,12 @@ def store_inference(symbol, inference, timestamp):
     response = table.update_item(
         Key={
             'Date': 'inference',
-            'Timestamp': timestamp
+            'Timestamp': 'timestamp'
         },
-        UpdateExpression="set {}Inference=:i".format(symbol),
+        UpdateExpression="set {}Inference=:i, latest=:l".format(symbol),
         ExpressionAttributeValues={
-            ':i': inference
+            ':i': inference,
+            ':l': timestamp
         }
     )
     print(response)
-
