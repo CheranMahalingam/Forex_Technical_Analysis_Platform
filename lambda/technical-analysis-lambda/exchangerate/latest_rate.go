@@ -7,22 +7,20 @@ import (
 	"os"
 	"time"
 
-	"technical-analysis-lambda/dynamosymbol"
+	"technical-analysis-lambda/finance"
 
 	finnhub "github.com/Finnhub-Stock-API/finnhub-go"
 )
 
-func CreateNewSymbolRate(symbols *[2]string, startSeconds int64, endSeconds int64, period string) (*[]dynamosymbol.SymbolRateItem, error) {
+func CreateNewSymbolRate(symbols *[2]string, startSeconds int64, endSeconds int64, period string, headline *string) (*[]finance.FinancialDataItem, *[]finance.NewsItem, error) {
 	finnhubClient := finnhub.NewAPIClient(finnhub.NewConfiguration()).DefaultApi
 	auth := context.WithValue(context.Background(), finnhub.ContextAPIKey, finnhub.APIKey{
 		Key: os.Getenv("PROJECT_API_KEY"),
 	})
-	symbolRateItems := []dynamosymbol.SymbolRateItem{}
+	symbolRateItems := []finance.FinancialDataItem{}
+	currentTime := time.Now().Unix()
 	for _, symbol := range *symbols {
 		symbolFinnhub := symbol[:3] + "_" + symbol[3:]
-		currentTime := time.Now().Unix()
-		log.Println("START", currentTime-startSeconds)
-		log.Println("END", currentTime-endSeconds)
 		forexCandles, _, err := finnhubClient.ForexCandles(
 			auth, "OANDA:"+symbolFinnhub, period, time.Now().Unix()-startSeconds,
 			time.Now().Unix()-endSeconds,
@@ -30,11 +28,11 @@ func CreateNewSymbolRate(symbols *[2]string, startSeconds int64, endSeconds int6
 		if err != nil {
 			log.Println("Issue connecting to forex client")
 			log.Println(err)
-			return nil, errors.New("forex client connection error")
+			return nil, nil, errors.New("forex client connection error")
 		}
 		if forexCandles.S != "ok" {
 			log.Println("No data received")
-			return nil, nil
+			return nil, nil, nil
 		}
 
 		log.Println(forexCandles)
@@ -54,17 +52,16 @@ func CreateNewSymbolRate(symbols *[2]string, startSeconds int64, endSeconds int6
 				volume := forexCandles.V[i]
 				timestamp := time.Unix(intTimestamp, 0).UTC()
 
-				newSymbolData := dynamosymbol.SymbolData{Open: open, High: high, Low: low, Close: close, Volume: volume}
+				newSymbolData := finance.SymbolData{Open: open, High: high, Low: low, Close: close, Volume: volume}
 				formattedDate := timestamp.Format("2006-01-02")
 				formattedTimestamp := timestamp.Format("15:04:05")
-				log.Println(formattedDate, formattedTimestamp)
 				if searchTimeIndex(&symbolRateItems, formattedDate, formattedTimestamp) == -1 {
 					switch symbol {
 					case "EURUSD":
-						newSymbolRateItem := dynamosymbol.SymbolRateItem{Date: formattedDate, Timestamp: formattedTimestamp, EURUSD: newSymbolData}
+						newSymbolRateItem := finance.FinancialDataItem{Date: formattedDate, Timestamp: formattedTimestamp, EURUSD: newSymbolData}
 						symbolRateItems = append(symbolRateItems, newSymbolRateItem)
 					case "GBPUSD":
-						newSymbolRateItem := dynamosymbol.SymbolRateItem{Date: formattedDate, Timestamp: formattedTimestamp, GBPUSD: newSymbolData}
+						newSymbolRateItem := finance.FinancialDataItem{Date: formattedDate, Timestamp: formattedTimestamp, GBPUSD: newSymbolData}
 						symbolRateItems = append(symbolRateItems, newSymbolRateItem)
 					}
 				} else {
@@ -79,10 +76,17 @@ func CreateNewSymbolRate(symbols *[2]string, startSeconds int64, endSeconds int6
 			}
 		}
 	}
-	return &symbolRateItems, nil
+
+	latestNews, err := getMarketNews(finnhubClient, &auth, headline)
+	if err != nil {
+		log.Println(err)
+		return &symbolRateItems, nil, nil
+	}
+
+	return &symbolRateItems, latestNews, nil
 }
 
-func searchTimeIndex(symbolData *[]dynamosymbol.SymbolRateItem, date string, timestamp string) int {
+func searchTimeIndex(symbolData *[]finance.FinancialDataItem, date string, timestamp string) int {
 	for index, data := range *symbolData {
 		if data.Date == date && data.Timestamp == timestamp {
 			return index

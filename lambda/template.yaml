@@ -240,7 +240,7 @@ Resources:
               StartingPosition: LATEST
       Metadata:
         DockerTag: python3.8
-        DockerContext: ./prediction-lambda
+        DockerContext: ./prediction-lambda/handler
         Dockerfile: Dockerfile
 
     SymbolRateTable:

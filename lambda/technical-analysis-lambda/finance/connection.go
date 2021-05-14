@@ -1,4 +1,4 @@
-package dynamosymbol
+package finance
 
 type Connection struct {
 	ConnectionId string

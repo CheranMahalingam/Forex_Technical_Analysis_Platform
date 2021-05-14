@@ -5,21 +5,21 @@ import (
 	"errors"
 	"log"
 	"os"
-	"technical-analysis-lambda/dynamosymbol"
+	"technical-analysis-lambda/finance"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/apigatewaymanagementapi"
 )
 
-func BroadcastSymbolRate(connectionList *[]dynamosymbol.Connection, symbolRate *[]dynamosymbol.SymbolRateItem, symbol string) error {
+func BroadcastSymbolRate(connectionList *[]finance.Connection, symbolRate *[]finance.FinancialDataItem, symbol string) error {
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 	}))
 
 	apigw := apigatewaymanagementapi.New(sess, aws.NewConfig().WithEndpoint(os.Getenv("API_GATEWAY_URI")))
 
-	newData, err := createCallbackMessage(symbolRate, symbol)
+	newData, err := createCallbackSymbolMessage(symbolRate, symbol)
 	if err != nil {
 		return err
 	}
@@ -28,7 +28,7 @@ func BroadcastSymbolRate(connectionList *[]dynamosymbol.Connection, symbolRate *
 		return errors.New("no data to broadcast")
 	}
 
-	newSymbolData := map[string][]CallbackMessageData{}
+	newSymbolData := map[string][]CallbackSymbolMessage{}
 	newSymbolData[symbol] = *newData
 
 	byteMessage, err := json.Marshal(newSymbolData)
@@ -48,12 +48,12 @@ func BroadcastSymbolRate(connectionList *[]dynamosymbol.Connection, symbolRate *
 	return nil
 }
 
-func createCallbackMessage(symbolRate *[]dynamosymbol.SymbolRateItem, symbol string) (*[]CallbackMessageData, error) {
-	var newCallbackMessageData []CallbackMessageData
+func createCallbackSymbolMessage(symbolRate *[]finance.FinancialDataItem, symbol string) (*[]CallbackSymbolMessage, error) {
+	var newCallbackMessageData []CallbackSymbolMessage
 	for _, rate := range *symbolRate {
 		symbolField := getSymbolRateField(symbol, &rate)
 		if checkIsRateValid(symbolField, symbol) {
-			newData := CallbackMessageData{
+			newData := CallbackSymbolMessage{
 				Timestamp: rate.Date + " " + rate.Timestamp,
 				Open:      symbolField.Open,
 				High:      symbolField.High,
@@ -67,7 +67,7 @@ func createCallbackMessage(symbolRate *[]dynamosymbol.SymbolRateItem, symbol str
 	return &newCallbackMessageData, nil
 }
 
-func checkIsRateValid(symbolField *dynamosymbol.SymbolData, symbol string) bool {
+func checkIsRateValid(symbolField *finance.SymbolData, symbol string) bool {
 	if symbolField.Open == 0 ||
 		symbolField.High == 0 ||
 		symbolField.Low == 0 ||
@@ -77,7 +77,7 @@ func checkIsRateValid(symbolField *dynamosymbol.SymbolData, symbol string) bool 
 	return true
 }
 
-func getSymbolRateField(symbol string, symbolRate *dynamosymbol.SymbolRateItem) *dynamosymbol.SymbolData {
+func getSymbolRateField(symbol string, symbolRate *finance.FinancialDataItem) *finance.SymbolData {
 	switch symbol {
 	case "EURUSD":
 		return &symbolRate.EURUSD

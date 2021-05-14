@@ -1,4 +1,4 @@
-package dynamosymbol
+package finance
 
 import (
 	"log"
@@ -9,7 +9,14 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
 
-func PutNewSymbolRate(newSymbolRate *SymbolRateItem) {
+func SendRateToDB(newSymbolRates *[]FinancialDataItem, latestNews *[]NewsItem) {
+	newFinancialData := mergeNewsItems(newSymbolRates, latestNews)
+	for _, newEntry := range *newFinancialData {
+		putNewSymbolRate(&newEntry)
+	}
+}
+
+func putNewSymbolRate(newSymbolRate *FinancialDataItem) {
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 	}))
@@ -32,8 +39,14 @@ func PutNewSymbolRate(newSymbolRate *SymbolRateItem) {
 	}
 }
 
-func SendRateToDB(newSymbolRates *[]SymbolRateItem) {
-	for _, newEntry := range *newSymbolRates {
-		PutNewSymbolRate(&newEntry)
+func mergeNewsItems(newSymbolRates *[]FinancialDataItem, latestNews *[]NewsItem) *[]FinancialDataItem {
+	for index, news := range *latestNews {
+		if len(*newSymbolRates) > index {
+			(*newSymbolRates)[index].MarketNews = news
+		} else {
+			break
+		}
 	}
+
+	return newSymbolRates
 }
