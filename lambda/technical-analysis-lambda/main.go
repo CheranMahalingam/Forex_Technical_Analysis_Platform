@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-var currencyPairs = [2]string{"EURUSD", "GBPUSD"}
+var currencyPairs = [4]string{"EURUSD", "GBPUSD", "USDJPY", "AUDCAD"}
 
 func handler(request events.CloudWatchEvent) (events.CloudWatchEvent, error) {
 	prevHeadline, err := finance.GetNewsHeadline()

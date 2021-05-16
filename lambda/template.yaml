@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: Forex Data Streaming Template
+Description: Forex Analytics Platform Template
 
 Globals:
   Function:
@@ -151,15 +151,15 @@ Resources:
           ScheduledFinnhubCall1:
             Type: Schedule
             Properties:
-              Schedule: cron(0/2 17-23 ? * SUN *)
+              Schedule: cron(0/2 22-23 ? * SUN *)
           ScheduledFinnhubCall2:
             Type: Schedule
             Properties:
-              Schedule: cron(0/2 * ? * MON-THU *)  #rate(2 minutes)
+              Schedule: cron(0/2 * ? * MON-THU *)
           ScheduledFinnhubCall3:
             Type: Schedule
             Properties:
-              Schedule: cron(0/2 0-17 ? * FRI *)
+              Schedule: cron(0/2 0-22 ? * FRI *)
         Policies:
           - DynamoDBCrudPolicy:
               TableName: !Ref SymbolRateTable
@@ -293,7 +293,7 @@ Resources:
             KeyType: RANGE
         ProvisionedThroughput:
           ReadCapacityUnits: 5
-          WriteCapacityUnits: 5  
+          WriteCapacityUnits: 5
 
 Outputs:
   WebSocketURI:

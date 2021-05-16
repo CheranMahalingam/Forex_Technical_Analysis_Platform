@@ -15,7 +15,7 @@ import (
 func GetNewsHeadline() (*string, error) {
 	currentTime := time.Now().Format("2006-01-02")
 	newsHeadline, err := queryMarketNewsHeadline(currentTime)
-	log.Println(newsHeadline, "NewsId")
+	log.Println(newsHeadline, "NewsHeadline")
 	if err != nil {
 		return nil, err
 	} else if newsHeadline == nil {

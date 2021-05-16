@@ -359,11 +359,8 @@ function QuoteSelector(props) {
 const currencyPairs = [
   "EURUSD",
   "GBPUSD",
-  "USDCAD",
-  "AUDUSD",
   "USDJPY",
-  "USDCHF",
-  "NZDJPY",
+  "AUDCAD"
 ];
 
 export default QuoteSelector;

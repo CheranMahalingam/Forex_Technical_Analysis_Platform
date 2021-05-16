@@ -4,12 +4,20 @@ from decimal import Decimal
 DB_ANALYSIS_COLUMNS = [
     "EURUSD",
     "GBPUSD",
+    "USDJPY",
+    "AUDCAD",
     "EURUSDEma10",
     "EURUSDEma50",
     "GBPUSDEma10",
     "GBPUSDEma50",
+    "USDJPYEma10",
+    "USDJPYEma50",
+    "AUDCADEma10",
+    "AUDCADEma50",
     "EURUSDAccumulationDistribution",
-    "GBPUSDAccumulationDistribution"
+    "GBPUSDAccumulationDistribution",
+    "USDJPYAccumulationDistribution",
+    "AUDCADAccumulationDistribution"
 ]
 
 

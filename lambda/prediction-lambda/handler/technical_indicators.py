@@ -2,7 +2,7 @@ import boto3
 from boto3.dynamodb.conditions import Key
 import datetime
 
-SYMBOLS = ["EURUSD", "GBPUSD"]
+SYMBOLS = ["EURUSD", "GBPUSD", "USDJPY", "AUDCAD"]
 
 
 def generate_technical_indicators(new_ohlc_data):

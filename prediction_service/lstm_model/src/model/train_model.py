@@ -115,6 +115,6 @@ if __name__ == "__main__":
     nodes = [80, 64, 32, 4]
     optimizer = tf.keras.optimizers.Adam(learning_rate=0.0005)
     dropout = 0.2
-    epochs = 10
-    train_model("EURUSD", batch_size, window_size,
+    epochs = 15
+    train_model("AUDCAD", batch_size, window_size,
                 nodes, optimizer, dropout, epochs)

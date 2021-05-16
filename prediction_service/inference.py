@@ -167,4 +167,4 @@ def create_dataset(df, window_size):
 
 
 if __name__ == "__main__":
-    generate_prediction("EURUSD", 96, 4)
+    generate_prediction("GBPUSD", 96, 4)

@@ -12,7 +12,7 @@ import (
 	finnhub "github.com/Finnhub-Stock-API/finnhub-go"
 )
 
-func CreateNewSymbolRate(symbols *[2]string, startSeconds int64, endSeconds int64, period string, headline *string) (*[]finance.FinancialDataItem, *[]finance.NewsItem, error) {
+func CreateNewSymbolRate(symbols *[4]string, startSeconds int64, endSeconds int64, period string, headline *string) (*[]finance.FinancialDataItem, *[]finance.NewsItem, error) {
 	finnhubClient := finnhub.NewAPIClient(finnhub.NewConfiguration()).DefaultApi
 	auth := context.WithValue(context.Background(), finnhub.ContextAPIKey, finnhub.APIKey{
 		Key: os.Getenv("PROJECT_API_KEY"),
@@ -63,6 +63,12 @@ func CreateNewSymbolRate(symbols *[2]string, startSeconds int64, endSeconds int6
 					case "GBPUSD":
 						newSymbolRateItem := finance.FinancialDataItem{Date: formattedDate, Timestamp: formattedTimestamp, GBPUSD: newSymbolData}
 						symbolRateItems = append(symbolRateItems, newSymbolRateItem)
+					case "USDJPY":
+						newSymbolRateItem := finance.FinancialDataItem{Date: formattedDate, Timestamp: formattedTimestamp, USDJPY: newSymbolData}
+						symbolRateItems = append(symbolRateItems, newSymbolRateItem)
+					case "AUDCAD":
+						newSymbolRateItem := finance.FinancialDataItem{Date: formattedDate, Timestamp: formattedTimestamp, AUDCAD: newSymbolData}
+						symbolRateItems = append(symbolRateItems, newSymbolRateItem)
 					}
 				} else {
 					index := searchTimeIndex(&symbolRateItems, formattedDate, formattedTimestamp)
@@ -71,6 +77,10 @@ func CreateNewSymbolRate(symbols *[2]string, startSeconds int64, endSeconds int6
 						symbolRateItems[index].EURUSD = newSymbolData
 					case "GBPUSD":
 						symbolRateItems[index].GBPUSD = newSymbolData
+					case "USDJPY":
+						symbolRateItems[index].USDJPY = newSymbolData
+					case "AUDCAD":
+						symbolRateItems[index].AUDCAD = newSymbolData
 					}
 				}
 			}

@@ -22,5 +22,7 @@ type FinancialDataItem struct {
 	Timestamp  string
 	EURUSD     SymbolData
 	GBPUSD     SymbolData
+	USDJPY     SymbolData
+	AUDCAD     SymbolData
 	MarketNews NewsItem
 }

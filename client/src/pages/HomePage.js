@@ -1,37 +1,60 @@
 import React from "react";
+import { useHistory } from "react-router-dom";
+import { makeStyles } from "@material-ui/core/styles";
+import Button from "@material-ui/core/Button";
+import "./HomePage.css";
 import NavigationMenu from "../components/NavigationMenu/NavigationMenu";
-import logo from "../logo.svg";
-import "../App.css";
+
+const useStyles = makeStyles({
+  root: {
+    marginLeft: "36%",
+    marginTop: "20%",
+  },
+  button1: {
+    position: "relative",
+    background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+    border: 0,
+    borderRadius: 3,
+    boxShadow: "0 3px 5px 2px rgba(33, 203, 243, .3)",
+    color: "white",
+    height: 48,
+    padding: "0 30px",
+    width: 190,
+  },
+  button2: {
+    position: "absolute",
+    background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+    border: 0,
+    borderRadius: 3,
+    boxShadow: "0 3px 5px 2px rgba(33, 203, 243, .3)",
+    color: "white",
+    height: 48,
+    padding: "0 30px",
+    width: 190,
+    marginLeft: 50
+  },
+});
 
 function HomePage() {
+  const classes = useStyles();
+  const history = useHistory();
+
   return (
-    <div
-      style={{
-        backgroundColor: "#000000",
-        minHeight: "100%",
-        height: "auto",
-        top: 0,
-        left: 0,
-        width: "100%",
-        position: "absolute",
-      }}
-    >
+    <div className="background">
       <NavigationMenu />
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
+      <div className={classes.root}>
+        <Button
+          className={classes.button1}
+          onClick={() => history.push("/charts")}
+        >
+          Exchange Rates
+        </Button>
+        <Button
+          className={classes.button2}
+          onClick={() => history.push("/news")}
+        >
+          Market News
+        </Button>
       </div>
     </div>
   );

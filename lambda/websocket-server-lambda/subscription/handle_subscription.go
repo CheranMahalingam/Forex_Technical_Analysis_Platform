@@ -28,12 +28,16 @@ type ExchangeRateTable struct {
 	Timestamp string
 	EURUSD    exchangeRate
 	GBPUSD    exchangeRate
+	USDJPY    exchangeRate
+	AUDCAD    exchangeRate
 }
 
 type Inference struct {
 	Latest          string
 	EURUSDInference []float32
 	GBPUSDInference []float32
+	USDJPYInference []float32
+	AUDCADInference []float32
 }
 
 type newsItem struct {
@@ -213,6 +217,10 @@ func getSymbolStructField(symbol string, symbolRate *ExchangeRateTable) *exchang
 		return &symbolRate.EURUSD
 	case "GBPUSD":
 		return &symbolRate.GBPUSD
+	case "USDJPY":
+		return &symbolRate.USDJPY
+	case "AUDCAD":
+		return &symbolRate.AUDCAD
 	default:
 		return nil
 	}
@@ -224,6 +232,10 @@ func getInferenceStructField(symbol string, inference Inference) *[]float32 {
 		return &inference.EURUSDInference
 	case "GBPUSD":
 		return &inference.GBPUSDInference
+	case "USDJPY":
+		return &inference.USDJPYInference
+	case "AUDCAD":
+		return &inference.AUDCADInference
 	default:
 		return nil
 	}
@@ -252,7 +264,7 @@ func keyConditionDayData() *[]expression.KeyConditionBuilder {
 		previousDate = time.Now().Add(-time.Hour * 72)
 	} else if currentDay == 1 {
 		currentDate = time.Now().Add(-time.Hour * 0)
-		currentDate = time.Now().Add(-time.Hour * 72)
+		previousDate = time.Now().Add(-time.Hour * 72)
 	} else {
 		currentDate = time.Now().Add(-time.Hour * 0)
 		previousDate = time.Now().Add(-time.Hour * 24)

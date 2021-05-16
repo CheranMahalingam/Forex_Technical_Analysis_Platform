@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 CURRENCIES = ["USD", "EUR", "CAD", "NZD", "CHF", "AUD", "JPY", "GBP"]
-SYMBOLS = ["EURUSD", "GBPUSD"]
+SYMBOLS = ["EURUSD", "GBPUSD", "USDJPY", "AUDCAD"]
 
 
 def preprocess(analysis_df):

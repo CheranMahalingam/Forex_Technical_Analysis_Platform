@@ -120,4 +120,4 @@ def test_model(pair, window_size, batch_size, time_steps):
 
 
 if __name__ == "__main__":
-    test_model("EURUSD", 96, 64, 4)
+    test_model("AUDCAD", 96, 64, 4)

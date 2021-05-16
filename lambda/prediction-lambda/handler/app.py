@@ -8,6 +8,7 @@ from connections import scan_connections, broadcast_inference, store_inference
 
 WINDOW_SIZE = 96
 PREDICTION_TIME_STEPS = 4
+SYMBOLS = ["EURUSD", "GBPUSD", "USDJPY", "AUDCAD"]
 
 
 def handler(event, context):
@@ -20,9 +21,10 @@ def handler(event, context):
         store_indicator_data(date, timestamp, analysis, sentiment)
         indicator_df = get_technical_analysis_data(date, timestamp)
         processed_df = preprocess(indicator_df)
-        predictions = generate_prediction("EURUSD", processed_df, WINDOW_SIZE, PREDICTION_TIME_STEPS, analysis["EURUSD"])
-        inference_subscribers = scan_connections("EURUSD")
-        broadcast_inference("EURUSD", inference_subscribers, predictions, date + timestamp)
-        store_inference("EURUSD", predictions, timestamp)
+        for currency in SYMBOLS:
+            predictions = generate_prediction(currency, processed_df, WINDOW_SIZE, PREDICTION_TIME_STEPS, analysis[currency])
+            inference_subscribers = scan_connections(currency)
+            broadcast_inference(currency, inference_subscribers, predictions, date + timestamp)
+            store_inference(currency, predictions, timestamp)
     except Exception as e:
         print("Exception:", e)

@@ -83,6 +83,10 @@ func getSymbolRateField(symbol string, symbolRate *finance.FinancialDataItem) *f
 		return &symbolRate.EURUSD
 	case "GBPUSD":
 		return &symbolRate.GBPUSD
+	case "USDJPY":
+		return &symbolRate.USDJPY
+	case "AUDCAD":
+		return &symbolRate.AUDCAD
 	default:
 		return nil
 	}
