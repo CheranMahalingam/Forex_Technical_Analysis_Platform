@@ -6,9 +6,9 @@ import "./HomePage.css";
 import NavigationMenu from "../components/NavigationMenu/NavigationMenu";
 
 const useStyles = makeStyles({
-  root: {
+  buttonGroup: {
     marginLeft: "36%",
-    marginTop: "20%",
+    marginTop: "10%",
   },
   button1: {
     position: "relative",
@@ -42,7 +42,10 @@ function HomePage() {
   return (
     <div className="background">
       <NavigationMenu />
-      <div className={classes.root}>
+      <h1 className="title">
+        Forex Analytics
+      </h1>
+      <div className={classes.buttonGroup}>
         <Button
           className={classes.button1}
           onClick={() => history.push("/charts")}

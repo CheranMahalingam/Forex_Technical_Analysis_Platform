@@ -2,3 +2,13 @@
     height: 100vh;
     background-image: url(../assets/home_background.jpg);
 }
+
+.title {
+    margin-left: 33%;
+    margin-top: 12%;
+    color: #FFFFFF;
+    font-size: 72px;
+    background: linear-gradient(to right, #f12711, #f5af19);
+    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text;
+}
