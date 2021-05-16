@@ -105,7 +105,7 @@ func filterMarketNews(marketNews *[]CallbackMessageNews) *[]CallbackMessageNews 
 	currentNews := (*marketNews)[0].MarketNews.Headline
 	var newMarketNewsList = []CallbackMessageNews{(*marketNews)[0]}
 	for _, news := range *marketNews {
-		if news.MarketNews.Headline != currentNews {
+		if news.MarketNews.Headline != currentNews && len(news.MarketNews.Headline) != 0 {
 			newMarketNewsList = append(newMarketNewsList, news)
 			currentNews = news.MarketNews.Headline
 		}

@@ -170,7 +170,7 @@ func initialInferenceData(symbol string) (*dynamodb.QueryInput, error) {
 		WithProjection(proj).
 		Build()
 	if err != nil {
-		log.Printf("Subscription to inferene data expression error: %s", err)
+		log.Printf("Subscription to inference data expression error: %s", err)
 		return nil, errors.New("expression error")
 	}
 
@@ -240,14 +240,28 @@ func checkIsRateValid(rate *exchangeRate) bool {
 }
 
 func keyConditionDayData() *[]expression.KeyConditionBuilder {
-	currentDate := time.Now().Add(-time.Hour * 0)
-	previousDay := currentDate.Add(-time.Hour * 24)
-	log.Println(currentDate)
-	log.Println(previousDay)
+	currentDay := int(time.Now().Weekday())
+	var currentDate time.Time
+	var previousDate time.Time
+
+	if currentDay == 6 {
+		currentDate = time.Now().Add(-time.Hour * 24)
+		previousDate = time.Now().Add(-time.Hour * 48)
+	} else if currentDay == 0 {
+		currentDate = time.Now().Add(-time.Hour * 48)
+		previousDate = time.Now().Add(-time.Hour * 72)
+	} else if currentDay == 1 {
+		currentDate = time.Now().Add(-time.Hour * 0)
+		currentDate = time.Now().Add(-time.Hour * 72)
+	} else {
+		currentDate = time.Now().Add(-time.Hour * 0)
+		previousDate = time.Now().Add(-time.Hour * 24)
+	}
+
 	keyCond := expression.Key("Date").Equal(expression.Value(currentDate.Format("2006-01-02")))
 	prevKeyCond := expression.KeyAnd(
-		expression.Key("Date").Equal(expression.Value(previousDay.Format("2006-01-02"))),
-		expression.Key("Timestamp").GreaterThanEqual(expression.Value(previousDay.Format("03:04:05"))),
+		expression.Key("Date").Equal(expression.Value(previousDate.Format("2006-01-02"))),
+		expression.Key("Timestamp").GreaterThanEqual(expression.Value(previousDate.Format("03:04:05"))),
 	)
 	keyCondList := []expression.KeyConditionBuilder{prevKeyCond, keyCond}
 

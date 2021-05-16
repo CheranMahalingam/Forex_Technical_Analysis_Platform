@@ -11,10 +11,17 @@ import DefaultImage from "../../assets/forex_broken_link.jpg";
 
 const useStyles = makeStyles(() => ({
   card: {
-    width: "100%",
+    marginTop: 20,
+    marginLeft: 15,
+    marginRight: 15,
+    padding: 5,
+  },
+  source: {
+      marginLeft: 5
   },
   header: {
     textAlign: "center",
+    marginTop: -10
   },
   media: {
     textAlign: "center",
@@ -24,6 +31,10 @@ const useStyles = makeStyles(() => ({
     marginRight: 20,
     marginTop: -20,
   },
+  date: {
+      color: "#4C4E52",
+      marginTop: -10
+  }
 }));
 
 function NewsCard(props) {
@@ -32,6 +43,9 @@ function NewsCard(props) {
   return (
     <React.Fragment>
       <Card className={classes.card}>
+        <Typography className={classes.source} variant="h6">
+          {props.source}
+        </Typography>
         <CardHeader className={classes.header} title={props.title} />
         <CardMedia className={classes.media}>
           <img
@@ -44,8 +58,8 @@ function NewsCard(props) {
           />
         </CardMedia>
         <CardContent>
-          <Typography variant="body1">
-            {props.source + " " + props.timestamp}
+          <Typography className={classes.date} variant="body2">
+            {props.timestamp}
           </Typography>
           <Typography variant="body2">{props.summary}</Typography>
         </CardContent>

@@ -26,11 +26,11 @@ export const parseNewInferenceData = (
     return pastInferenceData;
   }
   const date = new Date();
-  let slope = calculate_slope(parsedData[symbol].inference[0], previous, 15);
+  let slope = calculateSlope(parsedData[symbol].inference[0], previous, 15);
   for (let i = 0; i < parsedData[symbol].inference.length * 15; i++) {
     const index = Math.floor(i / 15);
     if (i % 15 === 0 && i !== 0) {
-      slope = calculate_slope(
+      slope = calculateSlope(
         parsedData[symbol].inference[index],
         parsedData[symbol].inference[index - 1],
         15
@@ -64,16 +64,22 @@ export const parseNewMarketNews = (news, prevNews) => {
     prevNews.headline.unshift(article.MarketNews.Headline);
     prevNews.image.unshift(article.MarketNews.Image);
     prevNews.source.unshift(article.MarketNews.Source);
-    prevNews.summary.unshift(article.MarketNews.Summary);
+    prevNews.summary.unshift(filterSpecialCharacters(article.MarketNews.Summary));
     prevNews.url.unshift(article.MarketNews.NewsUrl);
   }
 
   return prevNews;
 }
 
-const calculate_slope = (y2, y1, xChange) => {
+const calculateSlope = (y2, y1, xChange) => {
   if (xChange === 0) {
     return null;
   }
   return (y2 - y1) / xChange;
 };
+
+const filterSpecialCharacters = (text) => {
+  text = text.replace(/&nbsp;/g, " ");
+  text = text.replace(/&amp;/g, "&");
+  return text;
+}

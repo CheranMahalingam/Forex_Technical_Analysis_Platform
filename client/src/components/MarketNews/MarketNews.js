@@ -56,25 +56,25 @@ function MarketNews(props) {
   const createNewsCard = (column) => {
     let columnNews = {};
     columnNews.timestamp = marketNews.timestamp.filter(
-      (_, index) => index % 2 === column
+      (_, index) => index % 3 === column
     );
     columnNews.headline = marketNews.headline.filter(
-      (_, index) => index % 2 === column
+      (_, index) => index % 3 === column
     );
     columnNews.image = marketNews.image.filter(
-      (_, index) => index % 2 === column
+      (_, index) => index % 3 === column
     );
     columnNews.summary = marketNews.summary.filter(
-      (_, index) => index % 2 === column
+      (_, index) => index % 3 === column
     );
     columnNews.source = marketNews.source.filter(
-      (_, index) => index % 2 === column
+      (_, index) => index % 3 === column
     );
-    columnNews.url = marketNews.url.filter((_, index) => index % 2 === column);
+    columnNews.url = marketNews.url.filter((_, index) => index % 3 === column);
 
     return columnNews.timestamp.map((_, index) => (
       <NewsCard
-        key={columnNews.timestamp[index]}
+        key={columnNews.timestamp[index] + String(index)}
         timestamp={columnNews.timestamp[index]}
         title={columnNews.headline[index]}
         image={columnNews.image[index]}
@@ -88,11 +88,14 @@ function MarketNews(props) {
   return (
     <React.Fragment>
       <div style={{ display: "flex" }}>
-        <div style={{ flex: "50%" }}>
+        <div style={{ display: "flex", flexDirection: "column", flex: 4 }}>
           {createNewsCard(0)}
         </div>
-        <div style={{ flex: "50%" }}>
+        <div style={{ display: "flex", flexDirection: "column", flex: 4 }}>
           {createNewsCard(1)}
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", flex: 4 }}>
+          {createNewsCard(2)}
         </div>
       </div>
     </React.Fragment>

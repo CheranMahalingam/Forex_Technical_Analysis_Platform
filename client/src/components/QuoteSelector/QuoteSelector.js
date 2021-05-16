@@ -10,6 +10,7 @@ import {
   parseNewInferenceData,
   parseNewSymbolData,
 } from "../../utils/websocketMessage";
+import EmptyQuote from "../Quote/EmptyQuote";
 
 var socket;
 
@@ -350,6 +351,7 @@ function QuoteSelector(props) {
             />
           );
         })}
+      {listedPairs && <EmptyQuote />}
     </React.Fragment>
   );
 }

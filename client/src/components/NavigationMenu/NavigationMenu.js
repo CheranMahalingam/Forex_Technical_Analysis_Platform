@@ -12,6 +12,7 @@ import TrendingUpIcon from "@material-ui/icons/TrendingUp";
 import PublicIcon from "@material-ui/icons/Public";
 import EventIcon from "@material-ui/icons/Event";
 import InfoIcon from "@material-ui/icons/Info";
+import GitHubIcon from "@material-ui/icons/GitHub";
 
 function NavigationMenu() {
   const [openMenu, setOpenMenu] = useState(false);
@@ -70,12 +71,23 @@ function NavigationMenu() {
             </ListItemIcon>
             <ListItemText primary="Economic Calendar" />
           </ListItem> */}
-          <ListItem button style={{ marginTop: "10%" }}>
+          {/* <ListItem button style={{ marginTop: "10%" }}>
             <ListItemIcon>
               <InfoIcon />
             </ListItemIcon>
             <ListItemText primary="About" />
-          </ListItem>
+          </ListItem> */}
+          <a
+            href="https://github.com/CheranMahalingam/Forex_Technical_Analysis_Platform"
+            style={{ color: "inherit", textDecoration: "none" }}
+          >
+            <ListItem button style={{ marginTop: "12%" }}>
+              <ListItemIcon>
+                <GitHubIcon />
+              </ListItemIcon>
+              <ListItemText primary="Source Code" />
+            </ListItem>
+          </a>
         </List>
       </div>
     );
