@@ -60,7 +60,7 @@ function NavigationMenu() {
             </ListItemIcon>
             <ListItemText primary="Market News" />
           </ListItem>
-          <ListItem
+          {/* <ListItem
             button
             onClick={() => history.push("/calendar")}
             style={{ marginTop: "10%" }}
@@ -69,7 +69,7 @@ function NavigationMenu() {
               <EventIcon />
             </ListItemIcon>
             <ListItemText primary="Economic Calendar" />
-          </ListItem>
+          </ListItem> */}
           <ListItem button style={{ marginTop: "10%" }}>
             <ListItemIcon>
               <InfoIcon />

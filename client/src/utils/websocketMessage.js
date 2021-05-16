@@ -54,6 +54,23 @@ export const parseNewInferenceData = (
   return newInferenceData;
 };
 
+export const parseNewMarketNews = (news, prevNews) => {
+  if (!news) {
+    return prevNews;
+  }
+
+  for (let article of news) {
+    prevNews.timestamp.unshift(article.MarketNews.Timestamp);
+    prevNews.headline.unshift(article.MarketNews.Headline);
+    prevNews.image.unshift(article.MarketNews.Image);
+    prevNews.source.unshift(article.MarketNews.Source);
+    prevNews.summary.unshift(article.MarketNews.Summary);
+    prevNews.url.unshift(article.MarketNews.NewsUrl);
+  }
+
+  return prevNews;
+}
+
 const calculate_slope = (y2, y1, xChange) => {
   if (xChange === 0) {
     return null;

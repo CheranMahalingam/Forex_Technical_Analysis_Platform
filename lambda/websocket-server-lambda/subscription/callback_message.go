@@ -13,3 +13,7 @@ type CallbackMessageInference struct {
 	Inference []float32 `json:"inference"`
 	Date      string    `json:"date"`
 }
+
+type CallbackMessageNews struct {
+	MarketNews newsItem
+}

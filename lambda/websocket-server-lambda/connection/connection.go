@@ -6,6 +6,7 @@ type Connection struct {
 	GBPUSD          bool
 	EURUSDInference bool
 	GBPUSDInference bool
+	MarketNews      bool
 }
 
 func CreateNewConnection(connectionId string) *Connection {
@@ -15,5 +16,6 @@ func CreateNewConnection(connectionId string) *Connection {
 		GBPUSD:          false,
 		EURUSDInference: false,
 		GBPUSDInference: false,
+		MarketNews:      false,
 	}
 }
