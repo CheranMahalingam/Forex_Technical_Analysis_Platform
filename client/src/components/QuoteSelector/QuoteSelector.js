@@ -48,29 +48,20 @@ function QuoteSelector(props) {
   const [data, setData] = useState({
     EURUSD: [],
     GBPUSD: [],
-    USDCAD: [],
+    AUDCAD: [],
     USDJPY: [],
-    AUDUSD: [],
-    USDCHF: [],
-    NZDJPY: [],
   });
   const [subscribeInference, setSubscribeInference] = useState({
     EURUSD: false,
     GBPUSD: false,
-    USDCAD: false,
+    AUDCAD: false,
     USDJPY: false,
-    AUDUSD: false,
-    USDCHF: false,
-    NZDJPY: false,
   });
   const [inferenceData, setInferenceData] = useState({
     EURUSD: [],
     GBPUSD: [],
-    USDCAD: [],
+    AUDCAD: [],
     USDJPY: [],
-    AUDUSD: [],
-    USDCHF: [],
-    NZDJPY: [],
   });
   const [quoteHeight, setQuoteHeight] = useState({});
   const [selectedIndicators, setSelectedIndicators] = useState({});

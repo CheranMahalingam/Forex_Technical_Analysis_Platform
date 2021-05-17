@@ -253,29 +253,52 @@ func checkIsRateValid(rate *exchangeRate) bool {
 
 func keyConditionDayData() *[]expression.KeyConditionBuilder {
 	currentDay := int(time.Now().Weekday())
-	var currentDate time.Time
-	var previousDate time.Time
+	currentHour := time.Now().Hour()
 
 	if currentDay == 6 {
-		currentDate = time.Now().Add(-time.Hour * 24)
-		previousDate = time.Now().Add(-time.Hour * 48)
+		currentDate := time.Now().Add(-time.Hour * 24)
+		previousDate := time.Now().Add(-time.Hour * 48)
+		keyCond := expression.Key("Date").Equal(expression.Value(currentDate.Format("2006-01-02")))
+		prevKeyCond := expression.Key("Date").Equal(expression.Value(previousDate.Format("2006-01-02")))
+		keyCondList := []expression.KeyConditionBuilder{prevKeyCond, keyCond}
+		return &keyCondList
+	} else if currentDay == 0 && currentHour > 22 {
+		currentDate := time.Now().Add(-time.Hour * 0)
+		previousDate := time.Now().Add(-time.Hour * 48)
+		extraDate := time.Now().Add(-time.Hour * 72)
+		keyCond := expression.Key("Date").Equal(expression.Value(currentDate.Format("2006-01-02")))
+		prevKeyCond := expression.Key("Date").Equal(expression.Value(previousDate.Format("2006-01-02")))
+		extraKeyCond := expression.KeyAnd(
+			expression.Key("Date").Equal(expression.Value(extraDate.Format("2006-01-02"))),
+			expression.Key("Timestamp").GreaterThanEqual(expression.Value(extraDate.Format("03:04:05"))),
+		)
+		keyCondList := []expression.KeyConditionBuilder{extraKeyCond, prevKeyCond, keyCond}
+		return &keyCondList
 	} else if currentDay == 0 {
-		currentDate = time.Now().Add(-time.Hour * 48)
-		previousDate = time.Now().Add(-time.Hour * 72)
+		currentDate := time.Now().Add(-time.Hour * 48)
+		previousDate := time.Now().Add(-time.Hour * 72)
+		keyCond := expression.Key("Date").Equal(expression.Value(currentDate.Format("2006-01-02")))
+		prevKeyCond := expression.Key("Date").Equal(expression.Value(previousDate.Format("2006-01-02")))
+		keyCondList := []expression.KeyConditionBuilder{prevKeyCond, keyCond}
+		return &keyCondList
 	} else if currentDay == 1 {
-		currentDate = time.Now().Add(-time.Hour * 0)
-		previousDate = time.Now().Add(-time.Hour * 72)
+		currentDate := time.Now().Add(-time.Hour * 0)
+		previousDate := time.Now().Add(-time.Hour * 24)
+		extraDate := time.Now().Add(-time.Hour * 72)
+		keyCond := expression.Key("Date").Equal(expression.Value(currentDate.Format("2006-01-02")))
+		prevKeyCond := expression.Key("Date").Equal(expression.Value(previousDate.Format("2006-01-02")))
+		extraKeyCond := expression.Key("Date").Equal(expression.Value(extraDate.Format("2006-01-02")))
+		keyCondList := []expression.KeyConditionBuilder{extraKeyCond, prevKeyCond, keyCond}
+		return &keyCondList
 	} else {
-		currentDate = time.Now().Add(-time.Hour * 0)
-		previousDate = time.Now().Add(-time.Hour * 24)
+		currentDate := time.Now().Add(-time.Hour * 0)
+		previousDate := time.Now().Add(-time.Hour * 24)
+		keyCond := expression.Key("Date").Equal(expression.Value(currentDate.Format("2006-01-02")))
+		prevKeyCond := expression.KeyAnd(
+			expression.Key("Date").Equal(expression.Value(previousDate.Format("2006-01-02"))),
+			expression.Key("Timestamp").GreaterThanEqual(expression.Value(previousDate.Format("03:04:05"))),
+		)
+		keyCondList := []expression.KeyConditionBuilder{prevKeyCond, keyCond}
+		return &keyCondList
 	}
-
-	keyCond := expression.Key("Date").Equal(expression.Value(currentDate.Format("2006-01-02")))
-	prevKeyCond := expression.KeyAnd(
-		expression.Key("Date").Equal(expression.Value(previousDate.Format("2006-01-02"))),
-		expression.Key("Timestamp").GreaterThanEqual(expression.Value(previousDate.Format("03:04:05"))),
-	)
-	keyCondList := []expression.KeyConditionBuilder{prevKeyCond, keyCond}
-
-	return &keyCondList
 }

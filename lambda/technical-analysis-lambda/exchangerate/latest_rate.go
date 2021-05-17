@@ -42,7 +42,6 @@ func CreateNewSymbolRate(symbols *[4]string, startSeconds int64, endSeconds int6
 			intTimestamp := int64(forexCandles.T[i])
 			if (intTimestamp > currentTime-startSeconds) && (intTimestamp < currentTime-endSeconds) {
 				if i != rateLength-1 && intTimestamp == int64(forexCandles.T[i+1]) {
-					log.Println(intTimestamp)
 					continue
 				}
 				open := forexCandles.O[i]

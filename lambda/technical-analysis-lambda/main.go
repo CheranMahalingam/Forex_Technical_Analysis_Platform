@@ -15,7 +15,6 @@ var currencyPairs = [4]string{"EURUSD", "GBPUSD", "USDJPY", "AUDCAD"}
 
 func handler(request events.CloudWatchEvent) (events.CloudWatchEvent, error) {
 	prevHeadline, err := finance.GetNewsHeadline()
-	log.Println(*prevHeadline)
 	if err != nil {
 		log.Println(err)
 		return events.CloudWatchEvent{}, err

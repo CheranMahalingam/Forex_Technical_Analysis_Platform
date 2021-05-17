@@ -42,6 +42,10 @@ func BroadcastMarketNews(connectionList *[]finance.Connection, marketNews *[]fin
 }
 
 func ValidateNewMarketNews(marketNews *[]finance.NewsItem, headline string) bool {
+	if marketNews == nil {
+		return false
+	}
+
 	if len(*marketNews) == 0 {
 		return false
 	}

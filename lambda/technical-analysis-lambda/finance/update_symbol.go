@@ -40,6 +40,9 @@ func putNewSymbolRate(newSymbolRate *FinancialDataItem) {
 }
 
 func mergeNewsItems(newSymbolRates *[]FinancialDataItem, latestNews *[]NewsItem) *[]FinancialDataItem {
+	if latestNews == nil {
+		return newSymbolRates
+	}
 	for index, news := range *latestNews {
 		if len(*newSymbolRates) > index {
 			(*newSymbolRates)[index].MarketNews = news
