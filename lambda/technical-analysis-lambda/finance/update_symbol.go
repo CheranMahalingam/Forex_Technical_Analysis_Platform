@@ -9,13 +9,16 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
 
+// Controller for processing financial data into a form such that it can be stored in db
 func SendRateToDB(newSymbolRates *[]FinancialDataItem, latestNews *[]NewsItem) {
+	// Market news is added to the financial data struct
 	newFinancialData := mergeNewsItems(newSymbolRates, latestNews)
 	for _, newEntry := range *newFinancialData {
 		putNewSymbolRate(&newEntry)
 	}
 }
 
+// Stores new ohlc data in DynamoDB
 func putNewSymbolRate(newSymbolRate *FinancialDataItem) {
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
@@ -39,10 +42,13 @@ func putNewSymbolRate(newSymbolRate *FinancialDataItem) {
 	}
 }
 
+// Adds market news to financial data slice
 func mergeNewsItems(newSymbolRates *[]FinancialDataItem, latestNews *[]NewsItem) *[]FinancialDataItem {
+	// Avoids null pointer dereferencing error
 	if latestNews == nil {
 		return newSymbolRates
 	}
+	// MarketNews fields are filled with collected headlines
 	for index, news := range *latestNews {
 		if len(*newSymbolRates) > index {
 			(*newSymbolRates)[index].MarketNews = news
@@ -50,6 +56,5 @@ func mergeNewsItems(newSymbolRates *[]FinancialDataItem, latestNews *[]NewsItem)
 			break
 		}
 	}
-
 	return newSymbolRates
 }

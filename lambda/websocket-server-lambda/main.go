@@ -13,7 +13,7 @@ import (
 
 func handler(ctx context.Context, event events.APIGatewayWebsocketProxyRequest) (events.APIGatewayProxyResponse, error) {
 	rc := event.RequestContext
-	log.Println(rc.RouteKey)
+
 	switch rk := rc.RouteKey; rk {
 	case "$connect":
 		log.Println("Connecting...")
@@ -43,6 +43,7 @@ func handler(ctx context.Context, event events.APIGatewayWebsocketProxyRequest) 
 		if err != nil {
 			return events.APIGatewayProxyResponse{StatusCode: 400}, nil
 		}
+	// Case where route key provided is unknown
 	case "$default":
 		log.Printf("Unknown RouteKey %v", rk)
 		return events.APIGatewayProxyResponse{StatusCode: 500}, nil

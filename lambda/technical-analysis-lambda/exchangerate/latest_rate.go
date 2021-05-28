@@ -13,14 +13,21 @@ import (
 )
 
 func CreateNewSymbolRate(symbols *[4]string, startSeconds int64, endSeconds int64, period string, headline *string) (*[]finance.FinancialDataItem, *[]finance.NewsItem, error) {
+	// Connect to Finnhub client
 	finnhubClient := finnhub.NewAPIClient(finnhub.NewConfiguration()).DefaultApi
 	auth := context.WithValue(context.Background(), finnhub.ContextAPIKey, finnhub.APIKey{
 		Key: os.Getenv("PROJECT_API_KEY"),
 	})
+
 	symbolRateItems := []finance.FinancialDataItem{}
 	currentTime := time.Now().Unix()
+
 	for _, symbol := range *symbols {
+		// Creates symbol name
 		symbolFinnhub := symbol[:3] + "_" + symbol[3:]
+
+		// Gets Forex candles between start and end times
+		// Bug exists in Finnhub API where some data outside of time interval is retrieved
 		forexCandles, _, err := finnhubClient.ForexCandles(
 			auth, "OANDA:"+symbolFinnhub, period, time.Now().Unix()-startSeconds,
 			time.Now().Unix()-endSeconds,
@@ -38,6 +45,7 @@ func CreateNewSymbolRate(symbols *[4]string, startSeconds int64, endSeconds int6
 		rateLength := len(forexCandles.O)
 		for i := 0; i < rateLength; i++ {
 			intTimestamp := int64(forexCandles.T[i])
+			// Ensure that the retrieved data fits within the specified time interval
 			if (intTimestamp > currentTime-startSeconds) && (intTimestamp < currentTime-endSeconds) {
 				if i != rateLength-1 && intTimestamp == int64(forexCandles.T[i+1]) {
 					continue
@@ -52,6 +60,8 @@ func CreateNewSymbolRate(symbols *[4]string, startSeconds int64, endSeconds int6
 				newSymbolData := finance.SymbolData{Open: open, High: high, Low: low, Close: close, Volume: volume}
 				formattedDate := timestamp.Format("2006-01-02")
 				formattedTimestamp := timestamp.Format("15:04:05")
+
+				// Check whether there are duplicates in symbolRateItems
 				if searchTimeIndex(&symbolRateItems, formattedDate, formattedTimestamp) == -1 {
 					switch symbol {
 					case "EURUSD":
@@ -68,6 +78,7 @@ func CreateNewSymbolRate(symbols *[4]string, startSeconds int64, endSeconds int6
 						symbolRateItems = append(symbolRateItems, newSymbolRateItem)
 					}
 				} else {
+					// If Finnhub provides duplicate data, update with the newer duplicate
 					index := searchTimeIndex(&symbolRateItems, formattedDate, formattedTimestamp)
 					switch symbol {
 					case "EURUSD":
@@ -84,6 +95,7 @@ func CreateNewSymbolRate(symbols *[4]string, startSeconds int64, endSeconds int6
 		}
 	}
 
+	// Searches for latest market news from Finnhub
 	latestNews, err := getMarketNews(finnhubClient, &auth, headline)
 	if err != nil {
 		log.Println(err)
@@ -93,6 +105,8 @@ func CreateNewSymbolRate(symbols *[4]string, startSeconds int64, endSeconds int6
 	return &symbolRateItems, latestNews, nil
 }
 
+// Searches slice of FinancialDataItem to see whether ohlc data already exists for a specific time
+// If no duplicate is found it returns -1
 func searchTimeIndex(symbolData *[]finance.FinancialDataItem, date string, timestamp string) int {
 	for index, data := range *symbolData {
 		if data.Date == date && data.Timestamp == timestamp {

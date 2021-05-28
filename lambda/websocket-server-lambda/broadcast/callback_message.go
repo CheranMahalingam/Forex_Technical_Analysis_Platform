@@ -1,6 +1,6 @@
-package subscription
+package broadcast
 
-type CallbackMessageData struct {
+type CallbackMessageSymbol struct {
 	Timestamp string  `json:"timestamp"`
 	Open      float32 `json:"open"`
 	High      float32 `json:"high"`
@@ -15,5 +15,5 @@ type CallbackMessageInference struct {
 }
 
 type CallbackMessageNews struct {
-	MarketNews newsItem
+	MarketNews marketNewsTable
 }

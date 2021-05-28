@@ -342,7 +342,7 @@ function QuoteSelector(props) {
             />
           );
         })}
-      {listedPairs && <EmptyQuote />}
+      {listedPairs.length === 0 ? <EmptyQuote />: null}
     </React.Fragment>
   );
 }

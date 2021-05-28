@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"time"
 
+	"websocket-server-lambda/broadcast"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -15,46 +17,17 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/expression"
 )
 
-type exchangeRate struct {
-	Open   float32
-	High   float32
-	Low    float32
-	Close  float32
-	Volume float32
-}
-
-type ExchangeRateTable struct {
-	Date      string
-	Timestamp string
-	EURUSD    exchangeRate
-	GBPUSD    exchangeRate
-	USDJPY    exchangeRate
-	AUDCAD    exchangeRate
-}
-
-type Inference struct {
-	Latest          string
-	EURUSDInference []float32
-	GBPUSDInference []float32
-	USDJPYInference []float32
-	AUDCADInference []float32
-}
-
-type newsItem struct {
-	Timestamp string
-	Headline  string
-	Image     string
-	Source    string
-	Summary   string
-	NewsUrl   string
-}
-
+// Controller function for allowing user to subscribe and unsubscribe to data channels
+// Parses websocket message payload to check which data channel the user subscribes to
+// New subscribers are sent past data since it will take time for new data to be received and
+// no data is streamed during the time the forex markets are closed
 func HandleSubscription(connectionId string, event events.APIGatewayWebsocketProxyRequest, subscribe bool) error {
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 	}))
 
 	msg := SubscriptionMessage{}
+	// Decodes json message so that data can be parsed
 	err := json.Unmarshal([]byte(event.Body), &msg)
 	if err != nil {
 		log.Println(err)
@@ -63,6 +36,7 @@ func HandleSubscription(connectionId string, event events.APIGatewayWebsocketPro
 
 	svc := dynamodb.New(sess)
 
+	// Updates user websocket subscription information
 	input := &dynamodb.UpdateItemInput{
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":symbol": {
@@ -85,9 +59,10 @@ func HandleSubscription(connectionId string, event events.APIGatewayWebsocketPro
 	}
 
 	if subscribe && permissionToGetRates(msg.Data) {
+		// Occurs if user subscribes to ohlc data channel
 		keyCondList := keyConditionDayData()
 		for _, condition := range *keyCondList {
-			newDataQuery, err := initialSubscriptionData(msg.Data, condition)
+			newDataQuery, err := broadcast.InitialOhlcData(msg.Data, condition)
 			if err != nil {
 				return err
 			}
@@ -98,13 +73,15 @@ func HandleSubscription(connectionId string, event events.APIGatewayWebsocketPro
 				return err
 			}
 
-			if err = broadcastSubscribedData(connectionId, event, subscriptionData, sess, msg.Data); err != nil {
+			exchangeRateMessage := broadcast.CreateExchangeRate()
+			if err = exchangeRateMessage.Broadcast(event, sess, subscriptionData, connectionId, &msg.Data); err != nil {
 				return err
 			}
 		}
 	} else if subscribe && permissionToGetInference(msg.Data) {
+		// Occurs if user subscribes to an exchange rate forecast channel
 		symbol := msg.Data[:6]
-		newInferenceQuery, err := initialInferenceData(symbol)
+		newInferenceQuery, err := broadcast.InitialInferenceData(symbol)
 		if err != nil {
 			return err
 		}
@@ -115,13 +92,15 @@ func HandleSubscription(connectionId string, event events.APIGatewayWebsocketPro
 			return err
 		}
 
-		if err = broadcastPrediction(connectionId, event, inferenceData, sess, symbol); err != nil {
+		inferenceMessage := broadcast.CreateInference()
+		if err = inferenceMessage.Broadcast(event, sess, inferenceData, connectionId, &symbol); err != nil {
 			return err
 		}
 	} else if subscribe && permissionToGetMarketNews(msg.Data) {
+		// Occurs if user subscribes to market news channel
 		keyCondList := keyConditionDayData()
 		for _, condition := range *keyCondList {
-			newNewsQuery, err := initialMarketNews(condition)
+			newNewsQuery, err := broadcast.InitialMarketNews(condition)
 			if err != nil {
 				return err
 			}
@@ -132,7 +111,8 @@ func HandleSubscription(connectionId string, event events.APIGatewayWebsocketPro
 				return err
 			}
 
-			if err = broadcastMarketNews(connectionId, event, marketNews, sess); err != nil {
+			newsMessage := broadcast.CreateMarketNews()
+			if err = newsMessage.Broadcast(event, sess, marketNews, connectionId, nil); err != nil {
 				return err
 			}
 		}
@@ -141,126 +121,27 @@ func HandleSubscription(connectionId string, event events.APIGatewayWebsocketPro
 	return nil
 }
 
-func initialSubscriptionData(symbol string, key expression.KeyConditionBuilder) (*dynamodb.QueryInput, error) {
-	proj := expression.NamesList(expression.Name(symbol), expression.Name("Date"), expression.Name("Timestamp"))
-	expr, err := expression.NewBuilder().
-		WithKeyCondition(key).
-		WithProjection(proj).
-		Build()
-	if err != nil {
-		log.Printf("Subscription data expression error: %s", err)
-		return nil, errors.New("expression error")
-	}
-
-	input := &dynamodb.QueryInput{
-		TableName:                 aws.String("SymbolRateTable"),
-		ProjectionExpression:      expr.Projection(),
-		ExpressionAttributeNames:  expr.Names(),
-		ExpressionAttributeValues: expr.Values(),
-		KeyConditionExpression:    expr.KeyCondition(),
-	}
-
-	return input, nil
-}
-
-func initialInferenceData(symbol string) (*dynamodb.QueryInput, error) {
-	colName := symbol + "Inference"
-	proj := expression.NamesList(expression.Name(colName), expression.Name("Time"))
-	keyCond := expression.Key("Date").Equal(expression.Value("inference"))
-	expr, err := expression.NewBuilder().
-		WithKeyCondition(keyCond).
-		WithProjection(proj).
-		Build()
-	if err != nil {
-		log.Printf("Subscription to inference data expression error: %s", err)
-		return nil, errors.New("expression error")
-	}
-
-	input := &dynamodb.QueryInput{
-		TableName:                 aws.String("TechnicalAnalysisTable"),
-		ProjectionExpression:      expr.Projection(),
-		ExpressionAttributeNames:  expr.Names(),
-		ExpressionAttributeValues: expr.Values(),
-		KeyConditionExpression:    expr.KeyCondition(),
-	}
-
-	return input, nil
-}
-
-func initialMarketNews(key expression.KeyConditionBuilder) (*dynamodb.QueryInput, error) {
-	proj := expression.NamesList(expression.Name("MarketNews"))
-	expr, err := expression.NewBuilder().
-		WithKeyCondition(key).
-		WithProjection(proj).
-		Build()
-	if err != nil {
-		log.Printf("Market news expression error: %s", err)
-		return nil, errors.New("expression error")
-	}
-
-	input := &dynamodb.QueryInput{
-		TableName:                 aws.String("SymbolRateTable"),
-		ProjectionExpression:      expr.Projection(),
-		ExpressionAttributeNames:  expr.Names(),
-		ExpressionAttributeValues: expr.Values(),
-		KeyConditionExpression:    expr.KeyCondition(),
-	}
-
-	return input, nil
-}
-
-func getSymbolStructField(symbol string, symbolRate *ExchangeRateTable) *exchangeRate {
-	switch symbol {
-	case "EURUSD":
-		return &symbolRate.EURUSD
-	case "GBPUSD":
-		return &symbolRate.GBPUSD
-	case "USDJPY":
-		return &symbolRate.USDJPY
-	case "AUDCAD":
-		return &symbolRate.AUDCAD
-	default:
-		return nil
-	}
-}
-
-func getInferenceStructField(symbol string, inference Inference) *[]float32 {
-	switch symbol {
-	case "EURUSD":
-		return &inference.EURUSDInference
-	case "GBPUSD":
-		return &inference.GBPUSDInference
-	case "USDJPY":
-		return &inference.USDJPYInference
-	case "AUDCAD":
-		return &inference.AUDCADInference
-	default:
-		return nil
-	}
-}
-
-func checkIsRateValid(rate *exchangeRate) bool {
-	if rate.Open == 0 ||
-		rate.High == 0 ||
-		rate.Low == 0 ||
-		rate.Close == 0 {
-		return false
-	}
-	return true
-}
-
+// Generates key conditions to query DynamoDB
+// Generally data from the past 24 hours is needed, however, forex markets are closed from
+// Friday 5:00PM EST to Sunday 5:00PM EST
+// During the weekend data from Friday and Thursday may be queried to provided 24 hours of data
+// Due to the db structure two reads are needed to fetch all data
 func keyConditionDayData() *[]expression.KeyConditionBuilder {
 	currentDay := int(time.Now().Weekday())
 	currentHour := time.Now().Hour()
 
 	if currentDay == 6 {
+		// On Saturday data from Friday and data from Thursday above the current hour is provided to users
 		currentDate := time.Now().Add(-time.Hour * 24)
 		previousDate := time.Now().Add(-time.Hour * 48)
 		keyCond := expression.Key("Date").Equal(expression.Value(currentDate.Format("2006-01-02")))
 		prevKeyCond := expression.Key("Date").Equal(expression.Value(previousDate.Format("2006-01-02")))
 		keyCondList := []expression.KeyConditionBuilder{prevKeyCond, keyCond}
 		return &keyCondList
+
 	} else if currentDay == 0 && currentHour > 22 {
+		// On Sunday after 5:00PM data from Sunday, Friday, and Thursday above the current hour is
+		// provided to users since Sunday data will be minimal when the markets open
 		currentDate := time.Now().Add(-time.Hour * 0)
 		previousDate := time.Now().Add(-time.Hour * 48)
 		extraDate := time.Now().Add(-time.Hour * 72)
@@ -272,14 +153,18 @@ func keyConditionDayData() *[]expression.KeyConditionBuilder {
 		)
 		keyCondList := []expression.KeyConditionBuilder{extraKeyCond, prevKeyCond, keyCond}
 		return &keyCondList
+
 	} else if currentDay == 0 {
+		// On Sunday data from Friday and Thursday above the current hour is provided to users
 		currentDate := time.Now().Add(-time.Hour * 48)
 		previousDate := time.Now().Add(-time.Hour * 72)
 		keyCond := expression.Key("Date").Equal(expression.Value(currentDate.Format("2006-01-02")))
 		prevKeyCond := expression.Key("Date").Equal(expression.Value(previousDate.Format("2006-01-02")))
 		keyCondList := []expression.KeyConditionBuilder{prevKeyCond, keyCond}
 		return &keyCondList
+
 	} else if currentDay == 1 {
+		// On Monday data from Monday, Sunday, and Friday above the current hour is provided to users
 		currentDate := time.Now().Add(-time.Hour * 0)
 		previousDate := time.Now().Add(-time.Hour * 24)
 		extraDate := time.Now().Add(-time.Hour * 72)
@@ -288,7 +173,10 @@ func keyConditionDayData() *[]expression.KeyConditionBuilder {
 		extraKeyCond := expression.Key("Date").Equal(expression.Value(extraDate.Format("2006-01-02")))
 		keyCondList := []expression.KeyConditionBuilder{extraKeyCond, prevKeyCond, keyCond}
 		return &keyCondList
+
 	} else {
+		// For all other days data from the current day and data from the previous day above the current
+		// hour is provided to users, results in 24 hours of data
 		currentDate := time.Now().Add(-time.Hour * 0)
 		previousDate := time.Now().Add(-time.Hour * 24)
 		keyCond := expression.Key("Date").Equal(expression.Value(currentDate.Format("2006-01-02")))
