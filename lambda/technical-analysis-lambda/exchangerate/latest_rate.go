@@ -35,8 +35,6 @@ func CreateNewSymbolRate(symbols *[4]string, startSeconds int64, endSeconds int6
 			return nil, nil, nil
 		}
 
-		log.Println(forexCandles)
-
 		rateLength := len(forexCandles.O)
 		for i := 0; i < rateLength; i++ {
 			intTimestamp := int64(forexCandles.T[i])

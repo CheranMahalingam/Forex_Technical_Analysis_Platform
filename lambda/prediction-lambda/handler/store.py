@@ -1,3 +1,5 @@
+"""Module for storing technical indicator and twitter sentiment data to DynamoDB"""
+
 import boto3
 from decimal import Decimal
 
@@ -22,6 +24,15 @@ DB_ANALYSIS_COLUMNS = [
 
 
 def store_indicator_data(date, timestamp, analysis, sentiment):
+    """
+    Stores new indicator data for each currency pair in DynamoDB
+
+    Args:
+        date: String representing current day in format YYYY-MM-SS
+        timestamp: String representing time at which the new data was received HH:MM:SS
+        analysis: Dictionary containing technical indicator data for each symbol
+        sentiment: Dictionary containing market sentiment data for each symbol
+    """
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table('TechnicalAnalysisTable')
 

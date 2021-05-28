@@ -1,3 +1,5 @@
+"""Entrypoint for lambda function"""
+
 from technical_indicators import generate_technical_indicators
 from twitter_sentiment import generate_twitter_sentiment
 from store import store_indicator_data

@@ -38,7 +38,6 @@ func BroadcastSymbolRate(connectionList *[]finance.Connection, symbolRate *[]fin
 	}
 
 	for _, conn := range *connectionList {
-		log.Println(conn.ConnectionId)
 		if _, err = apigw.PostToConnection(&apigatewaymanagementapi.PostToConnectionInput{ConnectionId: &conn.ConnectionId, Data: byteMessage}); err != nil {
 			log.Println("Could not send to api", err)
 			return errors.New("could not send to apigateway")

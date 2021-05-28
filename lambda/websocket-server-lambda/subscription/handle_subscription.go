@@ -84,7 +84,6 @@ func HandleSubscription(connectionId string, event events.APIGatewayWebsocketPro
 		return errors.New("DynamoDB Update Error")
 	}
 
-	log.Println(msg.Data)
 	if subscribe && permissionToGetRates(msg.Data) {
 		keyCondList := keyConditionDayData()
 		for _, condition := range *keyCondList {
@@ -115,7 +114,6 @@ func HandleSubscription(connectionId string, event events.APIGatewayWebsocketPro
 			log.Printf("dynamodb querying error: %s", err)
 			return err
 		}
-		log.Println(inferenceData)
 
 		if err = broadcastPrediction(connectionId, event, inferenceData, sess, symbol); err != nil {
 			return err

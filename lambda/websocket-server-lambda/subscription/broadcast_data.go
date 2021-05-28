@@ -24,7 +24,6 @@ func broadcastSubscribedData(connectionId string, event events.APIGatewayWebsock
 		log.Println("Could not unmarshal", err)
 		return errors.New("json unmarshalling error")
 	}
-	log.Println(rateList)
 	websocketMessage[symbol] = *createCallbackMessage(&rateList, symbol)
 
 	byteMessage, err := json.Marshal(websocketMessage)
@@ -46,14 +45,12 @@ func broadcastPrediction(connectionId string, event events.APIGatewayWebsocketPr
 	apigw := apigatewaymanagementapi.New(sess, aws.NewConfig().WithEndpoint(endpointUrl))
 
 	websocketMessage := map[string]CallbackMessageInference{}
-	log.Println(*prediction)
 	inferenceList := make([]Inference, *prediction.Count)
 	err := dynamodbattribute.UnmarshalListOfMaps(prediction.Items, &inferenceList)
 	if err != nil {
 		log.Println("Could not unmarshal", err)
 		return errors.New("json unmarshalling error")
 	}
-	log.Println(inferenceList)
 	websocketMessage[symbol] = *createCallbackInferenceMessage(&inferenceList, symbol)
 
 	byteMessage, err := json.Marshal(websocketMessage)

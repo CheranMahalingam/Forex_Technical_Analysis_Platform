@@ -1,3 +1,8 @@
+"""
+Module for generating the sentiment surrounding currencies according to the latest
+tweets.
+"""
+
 from TwitterAPI import TwitterAPI, TwitterPager
 import boto3
 import re
@@ -6,18 +11,20 @@ import os
 import datetime
 from sentiment_keyword_defs import SENTIMENT_KEYWORDS
 
-api = TwitterAPI(
-    consumer_key=os.getenv("TWITTER_CONSUMER_KEY"),
-    consumer_secret=os.getenv("TWITTER_CONSUMER_SECRET"),
-    access_token_key=os.getenv("TWITTER_ACCESS_TOKEN_KEY"),
-    access_token_secret=os.getenv("TWITTER_ACCESS_TOKEN_SECRET"),
-    api_version='2'
-)
-
 
 def generate_twitter_sentiment(end_time_key):
-    testing_interval = datetime.timedelta(minutes=2)
+    """
+    Controller used to get new tweets and generate a sentiment score for each tweet and for
+    every country.
 
+    Args:
+        end_time_key: Dictionary from DynamoDB containing the Date and Timestamp of a document
+    
+    Returns:
+        List of Dictionaries containing tweet text, creation date, public metrics, and sentiment
+        score for individual currencies
+    """
+    testing_interval = datetime.timedelta(minutes=2)
     date = end_time_key['Date']['S'] + " " + end_time_key['Timestamp']['S']
     end_time = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
     start_time = end_time - testing_interval
@@ -25,9 +32,9 @@ def generate_twitter_sentiment(end_time_key):
     formatted_end = end_time.isoformat('T') + 'Z'
 
     tweets = get_twitter_data(formatted_start, formatted_end)
-    sentiment = tweet_sentiment(tweets)
-    sentiment = currency_sentiment(sentiment)
-    return sentiment
+    tweet_sentiment_score = tweet_sentiment(tweets)
+    currency_sentiment_score = currency_sentiment(tweet_sentiment_score)
+    return currency_sentiment_score
 
 
 def get_twitter_data(start_time, end_time):
@@ -38,8 +45,16 @@ def get_twitter_data(start_time, end_time):
         start_time: String of RFC33339 formatted date
 
     Returns:
-        List with dictionaries containing tweet text, when the were created, and public metrics
+        List with dictionaries containing tweet text, when they were created, and public metrics
     """
+    api = TwitterAPI(
+        consumer_key=os.getenv("TWITTER_CONSUMER_KEY"),
+        consumer_secret=os.getenv("TWITTER_CONSUMER_SECRET"),
+        access_token_key=os.getenv("TWITTER_ACCESS_TOKEN_KEY"),
+        access_token_secret=os.getenv("TWITTER_ACCESS_TOKEN_SECRET"),
+        api_version='2'
+    )
+
     # Get tweets in batches of 100 for speed
     # 5 second delay between pages to prevent rate limiting
     pager = TwitterPager(api, 'tweets/search/recent', {
@@ -51,12 +66,9 @@ def get_twitter_data(start_time, end_time):
         }
     )
     tweet_data = []
-    counter = 0
     for item in pager.get_iterator(new_tweets=False):
         tweet_data.append(
             {"text": item['text'], "created_at": item['created_at']})
-        counter += 1
-    print(counter)
     return tweet_data
 
 
@@ -106,7 +118,22 @@ def remove_pattern(input_text, pattern):
 
 
 def currency_sentiment(tweets):
+    """
+    Generates sentiment scores from tweets for USD, EUR, ... Strategy is to have a sentiment
+    dictionary where certain words have positive or negative impacts on the exchange rate of a
+    currency. By parsing tweets for these keywords we can get an estimate of the sentiment
+    of investors on countries.
+
+    Args:
+        tweets: List of dictionaries containing the text from tweets
+    
+    Returns:
+        Dictionary of sentiment scores for popular currencies. Scores are
+        between -1 and 1 where 1 is positive outlook and -1 is a negative
+        outlook
+    """
     for tweet in tweets:
+        # Increase matches by making everything lowercase
         tweet['text'] = tweet['text'].lower()
 
     scores = {"USD": [], "EUR": [], "GBP": [], "CHF": [], "AUD": [], "JPY": [], "CAD": [], "NZD": []}
@@ -124,6 +151,21 @@ def currency_sentiment(tweets):
 
 
 def search_tweets_for_keyword(tweets, keyword, positive):
+    """
+    Parses tweet text for keywords and keeps track of sentiment score of tweets.
+    The function is used to associate certain tweets with a currency so the
+    currency accumulates a sentiment score which can be averaged to generate a sentiment
+    score.
+
+    Args:
+        tweets: List of dictionaries containing tweet text and tweet score
+        keyword: String that is searched for within each tweet's text
+        positive: Boolean representing whether the keyword is positively or negatively
+        correlated with the currency's exchange rate
+    
+    Returns:
+        List of floats between -1 and 1 representing sentiment scores
+    """
     score = []
     for tweet in tweets:
         if keyword in tweet['text']:
@@ -132,6 +174,15 @@ def search_tweets_for_keyword(tweets, keyword, positive):
 
 
 def list_average(score_list):
+    """
+    Utility function to get the average of a list.
+
+    Args:
+        score_list: List containing real numbers that must be averaged
+
+    Returns:
+        Float representing the average of the values in the provided list
+    """
     if len(score_list) == 0:
         return -100
     return sum(score_list) / len(score_list)

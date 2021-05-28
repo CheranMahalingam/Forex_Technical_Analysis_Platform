@@ -33,7 +33,7 @@ func ReadSymbolConnections(symbol string, symbolRate *[]byte) (*[]finance.Connec
 
 	result, err := svc.Scan(params)
 	if err != nil {
-		log.Println("Scan Failed LMAO", err)
+		log.Println("Scan Failed", err)
 		return nil, errors.New("DynamoDB scan failed")
 	}
 

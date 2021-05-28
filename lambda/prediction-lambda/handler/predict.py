@@ -1,3 +1,5 @@
+"""Module for generating exhcange rate forecasts"""
+
 import pandas as pd
 import numpy as np
 import joblib
@@ -11,7 +13,7 @@ def generate_prediction(symbol, processed_df, window_size, time_steps, prev_clos
     of the symbol for x next periods.
 
     Args:
-        pair: String representing the currency pair symbol(e.g EURUSD)
+        pair: String representing the currency pair symbol (e.g EURUSD)
         window_size: Integer representing how many periods of data are needed to make a prediction
         time_steps: Integer representing the number of periods the model predicts in advance
 
@@ -51,10 +53,11 @@ def generate_prediction(symbol, processed_df, window_size, time_steps, prev_clos
 
     y_pred = model.predict(X)
 
+    # Must undo normalization scaler transformation
     inverse_y_pred = scaler.inverse_transform(y_pred)
 
+    # Must undo stationary log return transformations
     new_prediction = prev_close * np.exp(inverse_y_pred[-1])
-    print(new_prediction, "PREDICTION")
 
     return new_prediction
 
@@ -73,10 +76,8 @@ def create_dataset(df, window_size):
         Numpy array of model inputs with windows of past data and numpy array of expected outputs
     """
     X = []
-    print(len(df))
     if len(df) <= window_size:
         df = extend_df(df, window_size)
-        print(len(df), "NEW LENGTH")
     # Ignore rows without # previous rows = window_size so there is enough past data to make prediction
     for i in range(len(df) - window_size):
         # Past data is used as an input
@@ -86,9 +87,24 @@ def create_dataset(df, window_size):
 
 
 def extend_df(df, window_size):
+    """
+    Method to generate additional entries in inference datafame such that there is
+    enough data for the ml model to make inferences. Model was trained to use 96 rows
+    of data to make predictions, or else it will return NaN as predictions. Method to resample
+    is to copy the final row until there are 96 rows.
+
+    Args:
+        df: Pandas dataframe containing all columns needed for ml model
+        window_size: Number of rows ml model needs in order to make an inference
+
+    Returns:
+        Pandas dataframe with additional rows
+    """
     new_rows = window_size - len(df) + 2
+    # Date range extends dates from original dataframe with 15 minute intervals
     new_time = pd.date_range(start=df.index[len(df) - 1], freq='15min', periods=new_rows, closed='right')
     new_df = pd.DataFrame(index=new_time)
+    # Forward fill to fill in new rows
+    # Concatenation will add the new dataframe to the bottom of the old one
     extended_df = pd.concat([df, new_df]).ffill()
-    print("EXTENDED")
     return extended_df

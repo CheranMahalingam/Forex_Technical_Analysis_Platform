@@ -33,7 +33,6 @@ func getMarketNews(client *finnhub.DefaultApiService, authContext *context.Conte
 		latestNews = append(latestNews, newsItem)
 	} else if len(forexNews) > 0 {
 		for _, article := range forexNews {
-			log.Println(article.Headline, "article Headline")
 			if article.Headline == *headline && len(latestNews) == 0 {
 				timestamp := time.Unix(article.Datetime, 0).UTC()
 				formattedTime := timestamp.Format("2006-01-02 15:04:05")

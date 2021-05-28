@@ -141,6 +141,7 @@ Resources:
     SymbolDataFunction:
       Type: AWS::Serverless::Function
       Properties:
+        MemorySize: 256
         PackageType: Image
         FunctionName: SymbolDataFunction
         Environment:
@@ -210,7 +211,7 @@ Resources:
     PredictionFunction:
       Type: AWS::Serverless::Function
       Properties:
-        MemorySize: 1024
+        MemorySize: 2048
         PackageType: Image
         FunctionName: PredictionFunction
         Environment:

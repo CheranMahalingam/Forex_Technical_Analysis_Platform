@@ -15,7 +15,6 @@ import (
 func GetNewsHeadline() (*string, error) {
 	currentTime := time.Now().Format("2006-01-02")
 	newsHeadline, err := queryMarketNewsHeadline(currentTime)
-	log.Println(newsHeadline, "NewsHeadline")
 	if err != nil {
 		return nil, err
 	} else if newsHeadline == nil {
@@ -47,8 +46,6 @@ func queryMarketNewsHeadline(date string) (*string, error) {
 		return nil, err
 	}
 
-	log.Println(date, "Query Time")
-
 	params := &dynamodb.QueryInput{
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
@@ -69,8 +66,6 @@ func queryMarketNewsHeadline(date string) (*string, error) {
 	if err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &marketData); err != nil {
 		return nil, errors.New("financial data unmarshalling error")
 	}
-
-	log.Println(marketData)
 
 	if len(marketData) > 0 {
 		return &marketData[0].MarketNews.Headline, nil
