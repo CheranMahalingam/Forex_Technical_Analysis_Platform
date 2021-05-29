@@ -80,7 +80,7 @@ func InitialInferenceData(symbol string) (*dynamodb.QueryInput, error) {
 }
 
 // Gets field from Inference according to symbol
-func getInferenceStructField(symbol string, inference inferenceTable) *[]float32 {
+func getInferenceStructField(symbol string, inference *inferenceTable) *[]float32 {
 	switch symbol {
 	case "EURUSD":
 		return &inference.EURUSDInference

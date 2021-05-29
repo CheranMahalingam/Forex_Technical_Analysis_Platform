@@ -27,7 +27,7 @@ func createCallbackSymbolMessage(symbolRate *[]exchangeRateTable, symbol string)
 // Parses Inference to construct a websocket payload containing exchange rate predictions
 func createCallbackInferenceMessage(inferenceList *[]inferenceTable, symbol string) *CallbackMessageInference {
 	// Gets inferences for correct symbol
-	inferenceField := getInferenceStructField(symbol, (*inferenceList)[0])
+	inferenceField := getInferenceStructField(symbol, &(*inferenceList)[0])
 	return &CallbackMessageInference{
 		Inference: *inferenceField,
 		Date:      (*inferenceList)[0].Latest,

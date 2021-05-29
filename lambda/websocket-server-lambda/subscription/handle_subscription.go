@@ -60,7 +60,9 @@ func HandleSubscription(connectionId string, event events.APIGatewayWebsocketPro
 
 	if subscribe && permissionToGetRates(msg.Data) {
 		// Occurs if user subscribes to ohlc data channel
-		keyCondList := keyConditionDayData()
+		currentDay := int(time.Now().Weekday())
+		currentHour := time.Now().Hour()
+		keyCondList := keyConditionDayData(currentDay, currentHour)
 		for _, condition := range *keyCondList {
 			newDataQuery, err := broadcast.InitialOhlcData(msg.Data, condition)
 			if err != nil {
@@ -98,7 +100,9 @@ func HandleSubscription(connectionId string, event events.APIGatewayWebsocketPro
 		}
 	} else if subscribe && permissionToGetMarketNews(msg.Data) {
 		// Occurs if user subscribes to market news channel
-		keyCondList := keyConditionDayData()
+		currentDay := int(time.Now().Weekday())
+		currentHour := time.Now().Hour()
+		keyCondList := keyConditionDayData(currentDay, currentHour)
 		for _, condition := range *keyCondList {
 			newNewsQuery, err := broadcast.InitialMarketNews(condition)
 			if err != nil {
@@ -126,10 +130,7 @@ func HandleSubscription(connectionId string, event events.APIGatewayWebsocketPro
 // Friday 5:00PM EST to Sunday 5:00PM EST
 // During the weekend data from Friday and Thursday may be queried to provided 24 hours of data
 // Due to the db structure two reads are needed to fetch all data
-func keyConditionDayData() *[]expression.KeyConditionBuilder {
-	currentDay := int(time.Now().Weekday())
-	currentHour := time.Now().Hour()
-
+func keyConditionDayData(currentDay int, currentHour int) *[]expression.KeyConditionBuilder {
 	if currentDay == 6 {
 		// On Saturday data from Friday and data from Thursday above the current hour is provided to users
 		currentDate := time.Now().Add(-time.Hour * 24)
