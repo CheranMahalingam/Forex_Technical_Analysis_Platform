@@ -26,7 +26,7 @@ A platform providing foreign exchange rates, global market news & forecasting to
 </p>
 
 # Future Features
-- Develop backtrading system
+- Develop backtesting system
 - Add economic calendar
 - Setup user authentication
 - Add support for more currency pairs
