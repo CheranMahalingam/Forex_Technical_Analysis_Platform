@@ -53,7 +53,10 @@ func mergeNewsItems(newSymbolRates *[]FinancialDataItem, latestNews *[]NewsItem)
 		if len(*newSymbolRates) > index {
 			(*newSymbolRates)[index].MarketNews = news
 		} else {
-			break
+			date := news.Timestamp[:10]
+			timestamp := news.Timestamp[11:]
+			newFinancialItem := FinancialDataItem{Date: date, Timestamp: timestamp, MarketNews: news}
+			*newSymbolRates = append(*newSymbolRates, newFinancialItem)
 		}
 	}
 	return newSymbolRates

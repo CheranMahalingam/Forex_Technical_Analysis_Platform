@@ -6,14 +6,12 @@ import (
 	"log"
 	"technical-analysis-lambda/finance"
 	"time"
-
-	finnhub "github.com/Finnhub-Stock-API/finnhub-go"
 )
 
 // Queries the Finnhub API to get forex news
 // Filters out news that have already been stored in db
-func getMarketNews(client *finnhub.DefaultApiService, authContext *context.Context, headline *string) (*[]finance.NewsItem, error) {
-	forexNews, _, err := client.GeneralNews(*authContext, "forex", nil)
+func getMarketNews(fc FinnhubClient, authContext *context.Context, headline *string) (*[]finance.NewsItem, error) {
+	forexNews, _, err := fc.GeneralNews(*authContext, "forex", nil)
 	if err != nil {
 		log.Println("Unable to get latest news")
 		return nil, errors.New("news request failed")

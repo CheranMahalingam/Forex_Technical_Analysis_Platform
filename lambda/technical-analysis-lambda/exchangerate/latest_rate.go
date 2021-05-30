@@ -12,9 +12,7 @@ import (
 	finnhub "github.com/Finnhub-Stock-API/finnhub-go"
 )
 
-func CreateNewSymbolRate(symbols *[4]string, startSeconds int64, endSeconds int64, period string, headline *string) (*[]finance.FinancialDataItem, *[]finance.NewsItem, error) {
-	// Connect to Finnhub client
-	finnhubClient := finnhub.NewAPIClient(finnhub.NewConfiguration()).DefaultApi
+func CreateNewSymbolRate(fc FinnhubClient, symbols *[4]string, startSeconds int64, endSeconds int64, period string, headline *string) (*[]finance.FinancialDataItem, *[]finance.NewsItem, error) {
 	auth := context.WithValue(context.Background(), finnhub.ContextAPIKey, finnhub.APIKey{
 		Key: os.Getenv("PROJECT_API_KEY"),
 	})
@@ -28,7 +26,7 @@ func CreateNewSymbolRate(symbols *[4]string, startSeconds int64, endSeconds int6
 
 		// Gets Forex candles between start and end times
 		// Bug exists in Finnhub API where some data outside of time interval is retrieved
-		forexCandles, _, err := finnhubClient.ForexCandles(
+		forexCandles, _, err := fc.ForexCandles(
 			auth, "OANDA:"+symbolFinnhub, period, time.Now().Unix()-startSeconds,
 			time.Now().Unix()-endSeconds,
 		)
@@ -96,7 +94,7 @@ func CreateNewSymbolRate(symbols *[4]string, startSeconds int64, endSeconds int6
 	}
 
 	// Searches for latest market news from Finnhub
-	latestNews, err := getMarketNews(finnhubClient, &auth, headline)
+	latestNews, err := getMarketNews(fc, &auth, headline)
 	if err != nil {
 		log.Println(err)
 		return &symbolRateItems, nil, nil

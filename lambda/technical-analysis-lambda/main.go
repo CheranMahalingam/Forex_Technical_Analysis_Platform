@@ -21,7 +21,8 @@ func handler(request events.CloudWatchEvent) (events.CloudWatchEvent, error) {
 		return events.CloudWatchEvent{}, err
 	}
 	// Gets latest exchange rates for each symbol and market news
-	newRate, newNews, err := exchangerate.CreateNewSymbolRate(&currencyPairs, 120, 0, "1", prevHeadline)
+	finnhubClient := exchangerate.NewForexApi()
+	newRate, newNews, err := exchangerate.CreateNewSymbolRate(finnhubClient, &currencyPairs, 120, 0, "1", prevHeadline)
 	if err != nil {
 		log.Println(err)
 		return events.CloudWatchEvent{}, err

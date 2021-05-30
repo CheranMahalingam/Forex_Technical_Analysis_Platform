@@ -57,7 +57,7 @@ func createCallbackSymbolMessage(symbolRate *[]finance.FinancialDataItem, symbol
 	for _, rate := range *symbolRate {
 		// Selects field of FinancialDataItem according to currency pair
 		symbolField := getSymbolRateField(symbol, &rate)
-		if checkIsRateValid(symbolField, symbol) {
+		if checkIsRateValid(symbolField) {
 			newData := CallbackSymbolMessage{
 				Timestamp: rate.Date + " " + rate.Timestamp,
 				Open:      symbolField.Open,
@@ -73,7 +73,7 @@ func createCallbackSymbolMessage(symbolRate *[]finance.FinancialDataItem, symbol
 }
 
 // Ohlc data is only valid if open, high, low, and close prices are non-zero
-func checkIsRateValid(symbolField *finance.SymbolData, symbol string) bool {
+func checkIsRateValid(symbolField *finance.SymbolData) bool {
 	if symbolField.Open == 0 ||
 		symbolField.High == 0 ||
 		symbolField.Low == 0 ||
